@@ -22,8 +22,8 @@ resolvers += Resolver.bintrayRepo("azavea", "geotrellis")
 
 libraryDependencies ++= Seq(
   "com.azavea.geotrellis" %% "geotrellis-spark" % "0.10.0-SNAPSHOT",
-  "org.apache.spark"      %% "spark-core" % "1.5.2",
-  "org.scalatest"         %%  "scalatest"      % "2.2.0" % "test"
+  "org.apache.spark"      %% "spark-core"       % "1.5.2",
+  "org.scalatest"         %%  "scalatest"       % "2.2.0" % "test"
 )
 
 assemblyMergeStrategy in assembly := {
