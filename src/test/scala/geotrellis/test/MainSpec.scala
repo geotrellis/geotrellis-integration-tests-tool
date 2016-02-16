@@ -1,4 +1,4 @@
-package demo
+package geotrellis.test
 
 import org.scalatest._
 
