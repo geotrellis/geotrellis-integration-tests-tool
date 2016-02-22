@@ -8,4 +8,5 @@ object AccumuloMain extends App {
   //save(LayerId(name, 20))
   val test = new S3IngestAccumuloTests()
   //test.combineLayers(LayerId(name, 20))
+  //println("finished")
 }

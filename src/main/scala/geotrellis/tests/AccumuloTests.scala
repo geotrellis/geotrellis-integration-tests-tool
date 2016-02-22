@@ -61,15 +61,15 @@ trait AccumuloTests extends SparkSupport with S3Support with AccumuloSupport wit
     if(read(layerId).filter(!_._2.isNoDataTile).count != 58)
       throw new Exception("Incorrect ingest validation")
   
-  def combineLayers(layer: LayerId) = {
-    val rdd = read(layer)
+  def combineLayers(layerId: LayerId) = {
+    println(s"combineLayer ${layerId}...")
+    val rdd = read(layerId)
     val crdd =
       (rdd union rdd)
         .map { case (k, v) => (k, (k, v)) }
         .combineByKey(createTiles, mergeTiles1, mergeTiles2)
         .map { case (key: K, seq: Seq[(K, V)]) =>
           val tiles = seq.map(_._2)
-
           key -> tiles(0).combine(tiles(1))(_ + _)
         }
 
@@ -78,10 +78,10 @@ trait AccumuloTests extends SparkSupport with S3Support with AccumuloSupport wit
     val keys = crdd.keys.collect()
     val key = keys(Random.nextInt(keys.length))
 
-    val ctile = crdd.lookup(key).map(_.toArray)
-    val tile = rdd.lookup(key).map(t => t.combine(t)(_ + _).toArray)
+    val ctile = crdd.lookup(key).map(_.toArray).head
+    val tile = rdd.lookup(key).map(t => t.combine(t)(_ + _).toArray).head
 
-    if(!ctile.equals(tile))
+    if(!ctile.sameElements(tile))
       throw new Exception("Incorrect combine layers")
   }
 
