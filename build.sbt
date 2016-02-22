@@ -21,10 +21,15 @@ pomIncludeRepository := { _ => false }
 resolvers += Resolver.bintrayRepo("azavea", "geotrellis")
 
 libraryDependencies ++= Seq(
-  "com.azavea.geotrellis" %% "geotrellis-spark" % "0.10.0-SNAPSHOT",
-  "org.apache.spark"      %% "spark-core"       % "1.5.2",
-  "org.scalatest"         %%  "scalatest"       % "2.2.0" % "test"
+  "com.azavea.geotrellis" %% "geotrellis-spark"     % "0.10.0-SNAPSHOT",
+  "com.azavea.geotrellis" %% "geotrellis-spark-etl" % "0.10.0-SNAPSHOT",
+  "com.typesafe"           % "config"               % "1.3.0",
+  "org.apache.spark"      %% "spark-core"           % "1.5.2" % "provided",
+  "org.apache.hadoop"      % "hadoop-client"        % "2.7.1" % "provided",
+  "org.scalatest"         %% "scalatest"            % "2.2.0" % "test"
 )
+
+test in assembly := {}
 
 assemblyMergeStrategy in assembly := {
   case "reference.conf" => MergeStrategy.concat
