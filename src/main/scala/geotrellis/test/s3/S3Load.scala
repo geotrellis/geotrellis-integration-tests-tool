@@ -1,7 +1,8 @@
-package geotrellis.test
+package geotrellis.test.s3
 
 import geotrellis.spark.etl.s3.GeoTiffS3Input
-import geotrellis.util.{SparkSupport, S3Support}
+import geotrellis.test.TestEnvironment
+import geotrellis.util.{S3Support, SparkSupport}
 import org.apache.spark.rdd.RDD
 
 trait S3Load { self: SparkSupport with TestEnvironment with S3Support  =>

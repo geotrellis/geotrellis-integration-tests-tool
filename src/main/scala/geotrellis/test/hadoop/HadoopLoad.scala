@@ -1,6 +1,7 @@
-package geotrellis.test
+package geotrellis.test.hadoop
 
 import geotrellis.spark.etl.hadoop.GeoTiffHadoopInput
+import geotrellis.test.TestEnvironment
 import geotrellis.util.{HadoopSupport, S3Support, SparkSupport}
 import org.apache.spark.rdd.RDD
 
