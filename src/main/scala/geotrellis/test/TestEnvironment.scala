@@ -8,6 +8,7 @@ import geotrellis.spark.tiling.ZoomedLayoutScheme
 import geotrellis.spark.{LayerId, Metadata, RasterMetaData, SpatialKey}
 import geotrellis.util.SparkSupport
 import geotrellis.vector.ProjectedExtent
+
 import org.apache.spark.rdd.RDD
 
 import scala.util.Random

@@ -3,6 +3,7 @@ package geotrellis.test.accumulo
 import geotrellis.spark.LayerId
 import geotrellis.spark.etl.s3.GeoTiffS3Input
 import geotrellis.util.S3Support
+
 import org.apache.spark.rdd.RDD
 
 class S3IngestAccumuloTests extends AccumuloTests with S3Support {
