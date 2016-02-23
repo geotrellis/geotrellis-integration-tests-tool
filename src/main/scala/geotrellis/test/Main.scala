@@ -1,8 +1,9 @@
-package geotrellis.test.accumulo
+package geotrellis.test
 
 import com.typesafe.scalalogging.slf4j.LazyLogging
+import geotrellis.test.accumulo.{S3IngestAccumuloTests, HadoopIngestAccumuloTests}
 
-object AccumuloMain extends App with LazyLogging {
+object Main extends App with LazyLogging {
   val hadoopTest = new HadoopIngestAccumuloTests()
   hadoopTest.spatialIngest
   hadoopTest.combineLayers
@@ -15,3 +16,4 @@ object AccumuloMain extends App with LazyLogging {
 
   logger.info("completed")
 }
+
