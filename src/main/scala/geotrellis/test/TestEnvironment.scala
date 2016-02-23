@@ -79,4 +79,7 @@ trait TestEnvironment { self: SparkSupport =>
 
     key
   }
+
+  def spatialIngest: Unit = spatialIngest(layerName)
+  def combineLayers: Unit = combineLayers(LayerId(layerName, zoom))
 }
