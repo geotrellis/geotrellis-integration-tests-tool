@@ -8,6 +8,6 @@ import geotrellis.test.TestEnvironment
 import geotrellis.util.{S3Support, SparkSupport}
 
 trait S3Tests extends SparkSupport with TestEnvironment with S3Support with Serializable {
-  @transient lazy val writer = S3LayerWriter[K, V, M](s3Bucket, s3Preifx, ZCurveKeyIndexMethod)
-  @transient lazy val reader = S3LayerReader[K, V, M](s3Bucket, s3Preifx)
+  @transient lazy val writer = S3LayerWriter[K, V, M](s3Bucket, s3IngestPreifx, ZCurveKeyIndexMethod)
+  @transient lazy val reader = S3LayerReader[K, V, M](s3Bucket, s3IngestPreifx)
 }
