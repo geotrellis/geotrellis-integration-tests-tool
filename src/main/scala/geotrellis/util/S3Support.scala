@@ -5,7 +5,7 @@ import geotrellis.spark.io.s3.S3Client
 import org.apache.commons.io.IOUtils
 
 trait S3Support extends S3Config { self: SparkSupport =>
-  lazy val s3Client = S3Client.default
+  @transient lazy val s3Client = S3Client.default
   lazy val keys = s3Client.listKeys(Config.s3Bucket, Config.s3Preifx)
 
   def saveS3Keys(func: (String, Array[Byte]) => Unit) =

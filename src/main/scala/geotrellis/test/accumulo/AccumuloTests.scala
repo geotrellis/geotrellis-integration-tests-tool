@@ -8,6 +8,6 @@ import geotrellis.test.TestEnvironment
 import geotrellis.util.{AccumuloSupport, SparkSupport}
 
 trait AccumuloTests extends SparkSupport with TestEnvironment with AccumuloSupport with Serializable {
-  lazy val writer = AccumuloLayerWriter[K, V, M](instance, table, ZCurveKeyIndexMethod)
-  lazy val reader = AccumuloLayerReader[K, V, M](instance)
+  @transient lazy val writer = AccumuloLayerWriter[K, V, M](instance, table, ZCurveKeyIndexMethod)
+  @transient lazy val reader = AccumuloLayerReader[K, V, M](instance)
 }
