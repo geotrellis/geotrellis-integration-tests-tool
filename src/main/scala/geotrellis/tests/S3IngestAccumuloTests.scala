@@ -1,28 +1,20 @@
 package geotrellis.tests
 
-import geotrellis.accumulo.AccumuloSupport
-import geotrellis.hadoop.HadoopSupport
-import geotrellis.proj4.WebMercator
-import geotrellis.raster.Tile
-import geotrellis.s3.S3Support
+import geotrellis.spark.LayerId
 import geotrellis.spark.etl.s3.GeoTiffS3Input
-import geotrellis.spark.ingest._
-import geotrellis.spark.io.accumulo.{AccumuloInstance, AccumuloLayerReader, AccumuloLayerWriter}
-import geotrellis.spark.io.avro.codecs._
-import geotrellis.spark.io.index.ZCurveKeyIndexMethod
-import geotrellis.spark.io.json._
-import geotrellis.spark.tiling.ZoomedLayoutScheme
-import geotrellis.spark.{LayerId, RasterMetaData, SpatialKey}
-import geotrellis.util.SparkSupport
-import geotrellis.vector.ProjectedExtent
+import geotrellis.util.S3Support
 import org.apache.spark.rdd.RDD
 
-class S3IngestAccumuloTests extends AccumuloTests {
+class S3IngestAccumuloTests extends AccumuloTests with S3Support {
   val layerName: String = "s3ingest-accumulo"
+  val zoom: Int = 20
 
   def loadTiles: RDD[(I, V)] = {
-    println("loading tiles from s3...")
+    logger.info("loading tiles from s3...")
     val s3Input = new GeoTiffS3Input()
-    s3Input(s3path)
+    s3Input(s3Params)
   }
+
+  def spatialIngest: Unit = spatialIngest(layerName)
+  def combineLayers: Unit = combineLayers(LayerId(layerName, zoom))
 }

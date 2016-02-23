@@ -1,12 +1,15 @@
 package geotrellis.tests
 
-import geotrellis.spark.LayerId
+import com.typesafe.scalalogging.slf4j.LazyLogging
 
-object AccumuloMain extends App {
-  val name = "s3_accumulo"
-  //spatialIngest(name)
-  //save(LayerId(name, 20))
-  val test = new S3IngestAccumuloTests()
-  //test.combineLayers(LayerId(name, 20))
-  //println("finished")
+object AccumuloMain extends App with LazyLogging {
+  val s3Test = new S3IngestAccumuloTests()
+  s3Test.spatialIngest
+  s3Test.combineLayers
+
+  val hadoopTest = new HadoopIngestAccumuloTests()
+  hadoopTest.spatialIngest
+  hadoopTest.combineLayers
+
+  logger.info("finished")
 }

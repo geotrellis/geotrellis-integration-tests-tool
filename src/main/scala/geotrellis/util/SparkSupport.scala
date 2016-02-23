@@ -2,8 +2,11 @@ package geotrellis.util
 
 import geotrellis.spark.utils.SparkUtils
 import org.apache.spark.{SparkConf, SparkContext}
+import org.slf4j.LoggerFactory
 
 trait SparkSupport {
+  @transient lazy val logger = LoggerFactory.getLogger(this.getClass)
+
   @transient lazy val _sc: SparkContext = new SparkContext(
     new SparkConf()
       .setAppName("AccumuloS3Ingest")
