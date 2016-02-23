@@ -16,4 +16,3 @@ object Main extends App with LazyLogging {
 
   logger.info("completed")
 }
-
