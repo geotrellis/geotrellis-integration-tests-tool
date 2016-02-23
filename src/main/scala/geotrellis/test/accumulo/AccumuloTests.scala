@@ -1,17 +1,16 @@
-package geotrellis.tests
+package geotrellis.test.accumulo
 
 import geotrellis.proj4.WebMercator
 import geotrellis.raster.Tile
 import geotrellis.spark.ingest._
+import geotrellis.spark.io.accumulo.{AccumuloLayerReader, AccumuloLayerWriter}
+import geotrellis.spark.io.avro.codecs._
 import geotrellis.spark.io.index.ZCurveKeyIndexMethod
+import geotrellis.spark.io.json._
 import geotrellis.spark.tiling.ZoomedLayoutScheme
-import geotrellis.spark.{Metadata, LayerId, RasterMetaData, SpatialKey}
-import geotrellis.spark.io.accumulo.{AccumuloLayerReader, AccumuloLayerWriter, AccumuloInstance}
+import geotrellis.spark.{LayerId, Metadata, RasterMetaData, SpatialKey}
 import geotrellis.util.{AccumuloSupport, SparkSupport}
 import geotrellis.vector.ProjectedExtent
-import geotrellis.spark.io.json._
-import geotrellis.spark.io.avro.codecs._
-
 import org.apache.spark.rdd.RDD
 
 import scala.util.Random
@@ -38,10 +37,12 @@ trait AccumuloTests extends SparkSupport with AccumuloSupport with Serializable 
     val sourceTiles: RDD[(I, V)] = loadTiles
 
     logger.info(s"ingesting tiles into accumulo (${layer})...")
-    Ingest[I, K](sourceTiles, WebMercator, ZoomedLayoutScheme(WebMercator)) { case (rdd, z) =>
-      if (z != 25 && rdd.filter(!_._2.isNoDataTile).count != 58) {
-        logger.error(s"Incorrect ingest ${layer}")
-        throw new Exception(s"Incorrect ingest ${layer}")
+    Ingest[I, K](sourceTiles, WebMercator, ZoomedLayoutScheme(WebMercator), pyramid = true) { case (rdd, z) =>
+      if (z == 25) {
+        if (rdd.filter(!_._2.isNoDataTile).count != 58) {
+          logger.error(s"Incorrect ingest ${layer}")
+          throw new Exception(s"Incorrect ingest ${layer}")
+        }
       }
 
       writer.write(LayerId(layer, z), rdd)
@@ -52,12 +53,6 @@ trait AccumuloTests extends SparkSupport with AccumuloSupport with Serializable 
     logger.info(s"reading ${layerId}...")
     AccumuloLayerReader[K, V, M](instance).read(layerId)
   }
-
-  def validateIngest(layerId: LayerId): Unit =
-    if(read(layerId).filter(!_._2.isNoDataTile).count != 58) {
-      logger.error(s"Incorrect ingest validation ${layerId}")
-      throw new Exception(s"Incorrect ingest validation ${layerId}")
-    }
   
   def combineLayers(layerId: LayerId): K = {
     logger.info(s"combineLayer ${layerId}...")

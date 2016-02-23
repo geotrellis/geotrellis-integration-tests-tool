@@ -1,4 +1,4 @@
-package geotrellis.tests
+package geotrellis.test.accumulo
 
 import geotrellis.spark.LayerId
 import geotrellis.spark.etl.s3.GeoTiffS3Input

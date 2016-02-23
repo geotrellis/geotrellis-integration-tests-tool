@@ -1,8 +1,8 @@
-package geotrellis.tests
+package geotrellis.test.accumulo
 
 import geotrellis.spark.LayerId
 import geotrellis.spark.etl.hadoop.GeoTiffHadoopInput
-import geotrellis.util.{S3Support, HadoopSupport}
+import geotrellis.util.{HadoopSupport, S3Support}
 import org.apache.spark.rdd.RDD
 
 class HadoopIngestAccumuloTests extends AccumuloTests with HadoopSupport with S3Support {
