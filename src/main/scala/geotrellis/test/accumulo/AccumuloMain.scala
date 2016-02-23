@@ -13,5 +13,5 @@ object AccumuloMain extends App with LazyLogging {
   hadoopTest.combineLayers
   hadoopTest.scStop
 
-  println("completed.")
+  logger.info("completed")
 }
