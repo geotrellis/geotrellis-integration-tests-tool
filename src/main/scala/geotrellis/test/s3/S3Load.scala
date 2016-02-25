@@ -1,11 +1,11 @@
 package geotrellis.test.s3
 
 import geotrellis.spark.etl.s3.GeoTiffS3Input
-import geotrellis.test.TestEnvironment
+import geotrellis.test.SpatialTestEnvironment
 import geotrellis.util.{S3Support, SparkSupport}
 import org.apache.spark.rdd.RDD
 
-trait S3Load { self: SparkSupport with TestEnvironment with S3Support  =>
+trait S3Load { self: SparkSupport with SpatialTestEnvironment with S3Support  =>
   val layerName: String = "s3Ingest"
   val zoom: Int = 20
 

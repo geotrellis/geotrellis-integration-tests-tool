@@ -1,11 +1,11 @@
 package geotrellis.test.hadoop
 
 import geotrellis.spark.etl.hadoop.GeoTiffHadoopInput
-import geotrellis.test.TestEnvironment
+import geotrellis.test.SpatialTestEnvironment
 import geotrellis.util.{HadoopSupport, S3Support, SparkSupport}
 import org.apache.spark.rdd.RDD
 
-trait HadoopLoad { self: SparkSupport with TestEnvironment with HadoopSupport with S3Support  =>
+trait HadoopLoad { self: SparkSupport with SpatialTestEnvironment with HadoopSupport with S3Support  =>
   val layerName: String = "hadoopIngest"
   val zoom: Int = 20
 
