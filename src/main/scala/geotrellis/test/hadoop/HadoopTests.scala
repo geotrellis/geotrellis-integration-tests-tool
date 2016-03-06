@@ -1,8 +1,7 @@
 package geotrellis.test.hadoop
 
-import geotrellis.spark.io.hadoop.{HadoopLayerReader, HadoopLayerWriter}
+import geotrellis.spark.io.hadoop._
 import geotrellis.spark.io.index.ZCurveKeyIndexMethod
-import geotrellis.spark.io.json._
 import geotrellis.test.SpatialTestEnvironment
 import geotrellis.util.{HadoopSupport, SparkSupport}
 import org.apache.hadoop.fs.Path

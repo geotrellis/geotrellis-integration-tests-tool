@@ -1,9 +1,7 @@
 package geotrellis.test.accumulo
 
-import geotrellis.spark.io.accumulo.{AccumuloLayerReader, AccumuloLayerWriter}
-import geotrellis.spark.io.avro.codecs._
+import geotrellis.spark.io.accumulo._
 import geotrellis.spark.io.index.ZCurveKeyIndexMethod
-import geotrellis.spark.io.json._
 import geotrellis.test.SpatialTestEnvironment
 import geotrellis.util.{AccumuloSupport, SparkSupport}
 
