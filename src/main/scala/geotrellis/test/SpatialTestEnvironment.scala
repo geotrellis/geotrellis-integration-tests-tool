@@ -34,12 +34,12 @@ trait SpatialTestEnvironment extends TestEnvironment { self: SparkSupport =>
     Ingest[I, K](loadTiles, WebMercator, ZoomedLayoutScheme(WebMercator), pyramid = true) { case (rdd, z) =>
       println(s"::::::::LayerId: ${LayerId(layer, z)}")
       println(s"::::::::rdd.filter(!_._2.isNoDataTile).count: ${rdd.filter(!_._2.isNoDataTile).count}")
-      /*if (z == 25) {
-        if (rdd.filter(!_._2.isNoDataTile).count != 58) {
+      if (z == 8) {
+        if (rdd.filter(!_._2.isNoDataTile).count != 64) {
           logger.error(s"Incorrect ingest ${layer}")
           throw new Exception(s"Incorrect ingest ${layer}")
         }
-      }*/
+      }
 
       writer.write(LayerId(layer, z), rdd)
     }

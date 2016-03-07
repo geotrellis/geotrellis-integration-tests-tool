@@ -1,5 +1,6 @@
 package geotrellis.test.accumulo
 
+import geotrellis.spark.io._
 import geotrellis.spark.io.accumulo._
 import geotrellis.spark.io.index.ZCurveKeyIndexMethod
 import geotrellis.test.SpatialTestEnvironment

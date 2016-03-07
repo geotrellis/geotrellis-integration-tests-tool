@@ -1,5 +1,6 @@
 package geotrellis.test.file
 
+import geotrellis.spark.io._
 import geotrellis.spark.io.file._
 import geotrellis.spark.io.index.ZCurveKeyIndexMethod
 import geotrellis.test.TemporalTestEnvironment

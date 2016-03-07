@@ -1,7 +1,7 @@
 package geotrellis.test.s3
 
+import geotrellis.spark.io._
 import geotrellis.spark.io.index.ZCurveKeyIndexMethod
-import geotrellis.spark.io.s3._
 import geotrellis.spark.io.s3.{S3LayerReader, S3LayerWriter}
 import geotrellis.test.TemporalTestEnvironment
 import geotrellis.util.{S3Support, SparkSupport}

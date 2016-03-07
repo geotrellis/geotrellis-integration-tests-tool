@@ -1,5 +1,6 @@
 package geotrellis.test.hadoop
 
+import geotrellis.spark.io._
 import geotrellis.spark.io.hadoop._
 import geotrellis.spark.io.index.ZCurveKeyIndexMethod
 import geotrellis.test.SpatialTestEnvironment

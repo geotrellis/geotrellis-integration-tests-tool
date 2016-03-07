@@ -7,7 +7,7 @@ import org.apache.spark.rdd.RDD
 
 trait TemporalS3Load { self: SparkSupport with TemporalTestEnvironment with S3Support  =>
   val layerName: String = "s3TemporalIngest"
-  val zoom: Int = 20
+  val zoom: Int = 7
 
   def loadTiles: RDD[(I, V)] = {
     logger.info("loading tiles from s3...")

@@ -1,6 +1,6 @@
 package geotrellis.util
 
-import geotrellis.spark.utils.SparkUtils
+import geotrellis.spark.util.SparkUtils
 import org.apache.spark.{SparkConf, SparkContext}
 import org.slf4j.LoggerFactory
 

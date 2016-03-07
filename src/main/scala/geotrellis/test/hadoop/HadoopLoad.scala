@@ -7,7 +7,7 @@ import org.apache.spark.rdd.RDD
 
 trait HadoopLoad { self: SparkSupport with SpatialTestEnvironment with HadoopSupport with S3Support  =>
   val layerName: String = "hadoopIngest"
-  val zoom: Int = 20
+  val zoom: Int = 7
 
   def saveToHdfsByteArray =
     saveS3Keys { (path, arr) => writeToHdfs(s"${hadoopLoadPath}${path.split("/").last}", arr) }

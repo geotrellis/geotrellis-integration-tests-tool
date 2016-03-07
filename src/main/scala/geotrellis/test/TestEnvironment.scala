@@ -17,3 +17,5 @@ trait TestEnvironment { self: SparkSupport =>
   def ingest: Unit
   def combine: Unit
 }
+
+//scala.tuple.blablabal$2123123
