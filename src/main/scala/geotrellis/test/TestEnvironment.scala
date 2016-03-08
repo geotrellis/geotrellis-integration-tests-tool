@@ -10,12 +10,13 @@ trait TestEnvironment { self: SparkSupport =>
   type V
   type M
 
+  val layerName: String
+  val zoom: Int
+
   def ingest(layer: String): Unit
   def read(layerId: LayerId): RDD[(K, V)] with Metadata[M]
-  def combineLayers(layerId: LayerId): K
+  def combine(layerId: LayerId): K
 
-  def ingest: Unit
-  def combine: Unit
+  def ingest(): Unit  = ingest(layerName)
+  def combine(): Unit = combine(LayerId(layerName, zoom))
 }
-
-//scala.tuple.blablabal$2123123
