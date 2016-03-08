@@ -31,10 +31,10 @@ trait SpatialTestEnvironment extends TestEnvironment { self: SparkSupport =>
     logger.info(s"ingesting tiles into accumulo (${layer})...")
     MultiBandIngest[I, K](loadTiles, WebMercator, ZoomedLayoutScheme(WebMercator), pyramid = true) { case (rdd, z) =>
       if (z == 8) {
-        //if (rdd.filter(!_._2.isNoDataTile).count != 64) {
-          //logger.error(s"Incorrect ingest ${layer}")
-          //throw new Exception(s"Incorrect ingest ${layer}")
-        //}
+        if (rdd.filter(!_._2.band(0).isNoDataTile).count != 64) {
+          logger.error(s"Incorrect ingest ${layer}")
+          throw new Exception(s"Incorrect ingest ${layer}")
+        }
       }
 
       writer.write(LayerId(layer, z), rdd)
