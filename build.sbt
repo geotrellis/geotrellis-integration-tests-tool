@@ -31,6 +31,8 @@ libraryDependencies ++= Seq(
   "org.scalatest"         %% "scalatest"            % "2.2.0" % "test"
 )
 
+addCompilerPlugin("org.spire-math" % "kind-projector" % "0.7.1" cross CrossVersion.binary)
+
 test in assembly := {}
 
 assemblyMergeStrategy in assembly := {
