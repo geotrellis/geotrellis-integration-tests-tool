@@ -14,6 +14,7 @@ import geotrellis.util.{HadoopSupport, SparkSupport}
 import geotrellis.vector.Extent
 import geotrellis.core._
 import org.apache.spark.rdd.RDD
+import org.joda.time.DateTime
 import spray.json.JsonFormat
 
 
@@ -87,7 +88,7 @@ trait TemporalTestEnvironment extends TestEnvironment { self: SparkSupport with 
 
     val ingestedRaster =
       read(layerId, Some(expectedRaster.extent))
-        .stitch
+        .stitch(TemporalKey(DateTime.now))
         .crop(expectedRaster.extent)
 
     val expectedRasterResampled = expectedRaster.resample(ingestedRaster.rasterExtent)

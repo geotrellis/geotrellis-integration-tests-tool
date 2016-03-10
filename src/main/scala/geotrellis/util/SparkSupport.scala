@@ -2,10 +2,10 @@ package geotrellis.util
 
 import geotrellis.spark.util.SparkUtils
 import org.apache.spark.{SparkConf, SparkContext}
-import org.slf4j.LoggerFactory
+import org.slf4j.{Logger, LoggerFactory}
 
 trait SparkSupport {
-  @transient lazy val logger = LoggerFactory.getLogger(this.getClass)
+  @transient lazy val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   implicit val sc: SparkContext
 

@@ -11,8 +11,13 @@ trait SpaceTimeRasterRDDMethods {
     * Collects and stitches all the tiles in the RasterRDD into one CompositeTile.
     * If a tile is missing from the RDD it will be represented with EmptyTile.
     */
-  def stitch: Raster[Tile] = {
-    val tileMap = rdd.collect().toMap.map { case (key, tile) ⇒ key.spatialKey → tile }
+  def stitch(tk: TemporalKey): Raster[Tile] = {
+    val tileMap =
+      rdd
+        .filter { case (key, value) => key.temporalKey == tk }
+        .collect()
+        .toMap
+        .map { case (key, tile) ⇒ key.spatialKey → tile }
 
     val rmd = rdd.metaData
     val tileCols = rmd.tileLayout.tileCols
