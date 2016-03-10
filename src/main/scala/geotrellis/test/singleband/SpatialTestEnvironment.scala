@@ -4,6 +4,7 @@ import geotrellis.proj4.WebMercator
 import geotrellis.raster._
 import geotrellis.raster.io.geotiff.SingleBandGeoTiff
 import geotrellis.spark.ingest._
+import geotrellis.spark.io.AttributeStore.Fields
 import geotrellis.spark.io._
 import geotrellis.spark.tiling.ZoomedLayoutScheme
 import geotrellis.spark.{LayerId, Metadata, RasterMetaData, SpatialKey}
@@ -78,8 +79,9 @@ trait SpatialTestEnvironment extends TestEnvironment { self: SparkSupport with H
   }
 
   def validate(layerId: LayerId): Unit = {
+    val metadata = attributeStore.readLayerAttribute[RasterMetaData](layerId, Fields.metaData)
     val expected = SingleBandGeoTiff(mvValidationTiffLocal)
-    val expectedRaster = expected.raster.reproject(expected.crs, WebMercator)
+    val expectedRaster = expected.raster.reproject(expected.crs, metadata.crs)
 
     val ingestedRaster =
       read(layerId, Some(expectedRaster.extent))

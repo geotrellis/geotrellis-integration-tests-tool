@@ -7,7 +7,7 @@ import org.apache.spark.rdd.RDD
 
 trait TemporalHadoopLoad { self: SparkSupport with TemporalTestEnvironment with HadoopSupport with S3Support =>
   val layerName: String = "hadoopTemporalIngest"
-  val zoom: Int = 7
+  val zoom: Int = 8
 
   def saveToHdfsByteArray =
     saveS3Keys { (path, arr) => writeToHdfs(s"${hadoopLoadPath}${path.split("/").last}", arr) }
