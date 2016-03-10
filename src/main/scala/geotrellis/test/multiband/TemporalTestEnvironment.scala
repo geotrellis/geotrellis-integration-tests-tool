@@ -1,19 +1,23 @@
 package geotrellis.test.multiband
 
 import geotrellis.proj4.WebMercator
-import geotrellis.raster.{MultiBandTile, Tile}
+import geotrellis.raster.io.geotiff.{MultiBandGeoTiff, SingleBandGeoTiff}
+import geotrellis.raster._
 import geotrellis.spark._
 import geotrellis.spark.ingest._
-import geotrellis.spark.io.{LayerReader, Writer}
+import geotrellis.spark.io._
 import geotrellis.spark.tiling.ZoomedLayoutScheme
 import geotrellis.test.TestEnvironment
 import geotrellis.test._
-import geotrellis.util.SparkSupport
+import geotrellis.core._
+import geotrellis.util.{HadoopSupport, SparkSupport}
+import geotrellis.vector.Extent
 import org.apache.spark.rdd.RDD
+import spray.json.JsonFormat
 
 import scala.util.Random
 
-trait TemporalTestEnvironment extends TestEnvironment { self: SparkSupport =>
+trait TemporalTestEnvironment extends TestEnvironment { self: SparkSupport with HadoopSupport =>
   type I = TemporalProjectedExtent
   type K = SpaceTimeKey
   type V = MultiBandTile
@@ -22,7 +26,8 @@ trait TemporalTestEnvironment extends TestEnvironment { self: SparkSupport =>
   def loadTiles: RDD[(I, V)]
 
   val writer: Writer[LayerId, RDD[(K, V)] with Metadata[M]]
-  val reader: LayerReader[LayerId, RDD[(K, V)] with Metadata[M]]
+  val reader: FilteringLayerReader[LayerId, K, M, RDD[(K, V)] with Metadata[M]]
+  val attributeStore: AttributeStore[JsonFormat]
 
   def ingest(layer: String): Unit = {
     conf.set("io.map.index.interval", "1")
@@ -40,9 +45,9 @@ trait TemporalTestEnvironment extends TestEnvironment { self: SparkSupport =>
     }
   }
 
-  def read(layerId: LayerId): RDD[(K, V)] with Metadata[M] = {
+  def read(layerId: LayerId, extent: Option[Extent] = None): RDD[(K, V)] with Metadata[M] = {
     logger.info(s"reading ${layerId}...")
-    reader.read(layerId)
+    extent.fold(reader.read(layerId))(e => reader.read(layerId,  new RDDQuery[K, M].where(Intersects(e))))
   }
 
   def combine(layerId: LayerId): K = {
@@ -71,5 +76,9 @@ trait TemporalTestEnvironment extends TestEnvironment { self: SparkSupport =>
     }
 
     key
+  }
+
+  def validate(layerId: LayerId): Unit = {
+    // not implemented yet
   }
 }

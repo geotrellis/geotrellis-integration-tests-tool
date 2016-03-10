@@ -10,6 +10,6 @@ trait S3Support extends S3Config { self: SparkSupport =>
 
   def saveS3Keys(func: (String, Array[Byte]) => Unit) =
     loadKeys foreach { key =>
-      func(key, IOUtils.toByteArray(s3Client.getObject(Config.s3Bucket, key).getObjectContent()))
+      func(key, IOUtils.toByteArray(s3Client.getObject(Config.s3Bucket, key).getObjectContent))
     }
 }

@@ -1,19 +1,22 @@
 package geotrellis.test.singleband
 
 import geotrellis.proj4.WebMercator
-import geotrellis.raster.Tile
+import geotrellis.raster._
+import geotrellis.raster.io.geotiff.SingleBandGeoTiff
 import geotrellis.spark.ingest._
-import geotrellis.spark.io.{LayerReader, Writer}
+import geotrellis.spark.io._
 import geotrellis.spark.tiling.ZoomedLayoutScheme
 import geotrellis.spark.{LayerId, Metadata, RasterMetaData, SpatialKey}
 import geotrellis.test._
-import geotrellis.util.SparkSupport
-import geotrellis.vector.ProjectedExtent
+import geotrellis.util.{HadoopSupport, SparkSupport}
+import geotrellis.vector.{Extent, ProjectedExtent}
+
 import org.apache.spark.rdd.RDD
+import spray.json.JsonFormat
 
 import scala.util.Random
 
-trait SpatialTestEnvironment extends TestEnvironment { self: SparkSupport =>
+trait SpatialTestEnvironment extends TestEnvironment { self: SparkSupport with HadoopSupport =>
   type I = ProjectedExtent
   type K = SpatialKey
   type V = Tile
@@ -22,13 +25,14 @@ trait SpatialTestEnvironment extends TestEnvironment { self: SparkSupport =>
   def loadTiles: RDD[(I, V)]
 
   val writer: Writer[LayerId, RDD[(K, V)] with Metadata[M]]
-  val reader: LayerReader[LayerId, RDD[(K, V)] with Metadata[M]]
+  val reader: FilteringLayerReader[LayerId, K, M, RDD[(K, V)] with Metadata[M]]
+  val attributeStore: AttributeStore[JsonFormat]
 
   def ingest(layer: String): Unit = {
     conf.set("io.map.index.interval", "1")
 
     logger.info(s"ingesting tiles into accumulo (${layer})...")
-    Ingest[I, K](loadTiles, WebMercator, ZoomedLayoutScheme(WebMercator), pyramid = true) { case (rdd, z) =>
+    FIngest[I, K](loadTiles, WebMercator, ZoomedLayoutScheme(WebMercator), pyramid = true) { case (rdd, z) =>
       if (z == 8) {
         if (rdd.filter(!_._2.isNoDataTile).count != 64) {
           logger.error(s"Incorrect ingest ${layer}")
@@ -40,9 +44,9 @@ trait SpatialTestEnvironment extends TestEnvironment { self: SparkSupport =>
     }
   }
 
-  def read(layerId: LayerId): RDD[(K, V)] with Metadata[M] = {
+  def read(layerId: LayerId, extent: Option[Extent] = None): RDD[(K, V)] with Metadata[M] = {
     logger.info(s"reading ${layerId}...")
-    reader.read(layerId)
+    extent.fold(reader.read(layerId))(e => reader.read(layerId,  new RDDQuery[K, M].where(Intersects(e))))
   }
 
   def combine(layerId: LayerId): K = {
@@ -71,5 +75,31 @@ trait SpatialTestEnvironment extends TestEnvironment { self: SparkSupport =>
     }
 
     key
+  }
+
+  def validate(layerId: LayerId): Unit = {
+    val expected = SingleBandGeoTiff(mvValidationTiffLocal)
+    val expectedRaster = expected.raster.reproject(expected.crs, WebMercator)
+
+    val ingestedRaster =
+      read(layerId, Some(expectedRaster.extent))
+        .stitch
+        .crop(expectedRaster.extent)
+
+    val expectedRasterResampled = expectedRaster.resample(ingestedRaster.rasterExtent)
+    val diffArr =
+      ingestedRaster
+        .tile
+        .toArray
+        .zip(expectedRasterResampled.tile.toArray)
+        .map { case (v1, v2) => v1 - v2 }
+    val diffRaster = Raster(ArrayTile(diffArr, ingestedRaster.cols, ingestedRaster.rows), ingestedRaster.extent)
+
+    writeRaster(ingestedRaster, s"${validationDir}ingested.${this.getClass.getName}")
+    writeRaster(expectedRasterResampled, s"${validationDir}expected.${this.getClass.getName}")
+    writeRaster(diffRaster, s"${validationDir}diff.${this.getClass.getName}")
+
+    println(s"validation.size.eq: ${ingestedRaster.tile.size == expectedRasterResampled.tile.size}")
+    println(s"validation: ${ingestedRaster.tile.toArray().sameElements(expectedRasterResampled.tile.toArray())}")
   }
 }

@@ -10,4 +10,5 @@ import org.apache.hadoop.fs.Path
 trait TemporalTests extends SparkSupport with TemporalTestEnvironment with HadoopSupport with Serializable {
   @transient lazy val writer = HadoopLayerWriter[K, V, M](new Path(hadoopIngestPath), ZCurveKeyIndexMethod.byYear)
   @transient lazy val reader = HadoopLayerReader[K, V, M](new Path(hadoopIngestPath))
+  @transient lazy val attributeStore = HadoopAttributeStore(hadoopIngestPath)
 }

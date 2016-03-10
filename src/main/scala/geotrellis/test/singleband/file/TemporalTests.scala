@@ -9,4 +9,5 @@ import geotrellis.util.{FileSupport, HadoopSupport, SparkSupport}
 trait TemporalTests extends SparkSupport with TemporalTestEnvironment with HadoopSupport with FileSupport with Serializable {
   @transient lazy val writer = FileLayerWriter[K, V, M](fileIngestPath, ZCurveKeyIndexMethod.byYear)
   @transient lazy val reader = FileLayerReader[K, V, M](fileIngestPath)
+  @transient lazy val attributeStore = FileAttributeStore(fileIngestPath)
 }

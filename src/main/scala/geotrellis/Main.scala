@@ -12,7 +12,10 @@ object Main extends App with LazyLogging {
     val test = get()
     test.ingest()
     test.combine()
+    test.validate()
   }
+
+
 
   logger.info("completed")
   sc.stop()

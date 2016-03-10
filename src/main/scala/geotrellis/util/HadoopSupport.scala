@@ -13,4 +13,9 @@ trait HadoopSupport extends HadoopConfig { self: SparkSupport =>
   }
 
   def clearLoadPath = HdfsUtils.deletePath(new Path(hadoopLoadPath), conf)
+
+  def copyToLocal(source: String, dest: String) =
+    FileSystem.get(conf).copyToLocalFile(new Path(source), new Path(dest))
+
+  def mvValidationTiffLocal: String = { copyToLocal(validationTiffPath, validationTiffPathLocal); validationTiffPathLocal }
 }

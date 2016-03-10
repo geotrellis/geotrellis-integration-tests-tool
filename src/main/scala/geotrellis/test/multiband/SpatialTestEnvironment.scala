@@ -1,20 +1,23 @@
 package geotrellis.test.multiband
 
 import geotrellis.proj4.WebMercator
-import geotrellis.raster.MultiBandTile
+import geotrellis.raster._
+import geotrellis.raster.io.geotiff.MultiBandGeoTiff
 import geotrellis.spark.ingest._
-import geotrellis.spark.io.{LayerReader, Writer}
+import geotrellis.core._
+import geotrellis.spark.io._
 import geotrellis.spark.tiling.ZoomedLayoutScheme
 import geotrellis.spark.{LayerId, Metadata, RasterMetaData, SpatialKey}
 import geotrellis.test.TestEnvironment
 import geotrellis.test._
-import geotrellis.util.SparkSupport
-import geotrellis.vector.ProjectedExtent
+import geotrellis.util.{HadoopSupport, SparkSupport}
+import geotrellis.vector.{Extent, ProjectedExtent}
 import org.apache.spark.rdd.RDD
+import spray.json.JsonFormat
 
 import scala.util.Random
 
-trait SpatialTestEnvironment extends TestEnvironment { self: SparkSupport =>
+trait SpatialTestEnvironment extends TestEnvironment { self: SparkSupport with HadoopSupport =>
   type I = ProjectedExtent
   type K = SpatialKey
   type V = MultiBandTile
@@ -23,7 +26,8 @@ trait SpatialTestEnvironment extends TestEnvironment { self: SparkSupport =>
   def loadTiles: RDD[(I, V)]
 
   val writer: Writer[LayerId, RDD[(K, V)] with Metadata[M]]
-  val reader: LayerReader[LayerId, RDD[(K, V)] with Metadata[M]]
+  val reader: FilteringLayerReader[LayerId, K, M, RDD[(K, V)] with Metadata[M]]
+  val attributeStore: AttributeStore[JsonFormat]
 
   def ingest(layer: String): Unit = {
     conf.set("io.map.index.interval", "1")
@@ -41,9 +45,9 @@ trait SpatialTestEnvironment extends TestEnvironment { self: SparkSupport =>
     }
   }
 
-  def read(layerId: LayerId): RDD[(K, V)] with Metadata[M] = {
+  def read(layerId: LayerId, extent: Option[Extent] = None): RDD[(K, V)] with Metadata[M] = {
     logger.info(s"reading ${layerId}...")
-    reader.read(layerId)
+    extent.fold(reader.read(layerId))(e => reader.read(layerId,  new RDDQuery[K, M].where(Intersects(e))))
   }
 
   def combine(layerId: LayerId): K = {
@@ -73,5 +77,35 @@ trait SpatialTestEnvironment extends TestEnvironment { self: SparkSupport =>
     }
 
     key
+  }
+
+  def validate(layerId: LayerId): Unit = {
+    val expected = MultiBandGeoTiff(mvValidationTiffLocal)
+    val expectedRaster = expected.raster.reproject(expected.crs, WebMercator)
+
+    val ingestedRaster =
+      read(layerId, Some(expectedRaster.extent))
+        .stitch
+        .crop(expectedRaster.extent)
+
+    val expectedRasterResampled = expectedRaster.resample(ingestedRaster.rasterExtent)
+    for (i <- 0 to expectedRaster.bandCount) {
+      val diffArr =
+        ingestedRaster
+          .band(i)
+          .toArray
+          .zip(expectedRasterResampled.band(i).toArray)
+          .map { case (v1, v2) => v1 - v2 }
+      val diffRaster = Raster(ArrayTile(diffArr, ingestedRaster.cols, ingestedRaster.rows), ingestedRaster.extent)
+
+      println(s"band($i) validation: ${ingestedRaster.band(i).toArray().sameElements(expectedRasterResampled.band(i).toArray())}")
+
+      writeRaster(diffRaster, s"${validationDir}diff.$i.${this.getClass.getName}")
+    }
+
+    writeMultiBandRaster(ingestedRaster, s"${validationDir}ingested.${this.getClass.getName}")
+    writeMultiBandRaster(expectedRasterResampled, s"${validationDir}expected.${this.getClass.getName}")
+
+    println(s"validation.size.eq: ${ingestedRaster.tile.size == expectedRasterResampled.tile.size}")
   }
 }
