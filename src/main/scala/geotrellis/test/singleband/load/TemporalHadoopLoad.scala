@@ -1,18 +1,19 @@
 package geotrellis.test.singleband.load
 
+import geotrellis.spark.TemporalProjectedExtent
 import geotrellis.spark.etl.hadoop.TemporalGeoTiffHadoopInput
 import geotrellis.test.singleband.TemporalTestEnvironment
-import geotrellis.util.{HadoopSupport, S3Support, SparkSupport}
+
 import org.apache.spark.rdd.RDD
 
-trait TemporalHadoopLoad { self: SparkSupport with TemporalTestEnvironment with HadoopSupport with S3Support =>
-  val layerName: String = "hadoopTemporalIngest"
+trait TemporalHadoopLoad { self: TemporalTestEnvironment =>
+  val layerName: String = "hadoopIngest"
   val zoom: Int = 8
 
   def saveToHdfsByteArray =
     saveS3Keys { (path, arr) => writeToHdfs(s"${hadoopLoadPath}${path.split("/").last}", arr) }
 
-  def loadTiles: RDD[(I, V)] = {
+  def loadTiles: RDD[(TemporalProjectedExtent, V)] = {
     logger.info("loading tiles from s3 to hdfs...")
     clearLoadPath
     saveToHdfsByteArray

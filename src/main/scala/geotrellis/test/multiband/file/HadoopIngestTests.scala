@@ -1,11 +1,13 @@
 package geotrellis.test.multiband.file
 
 import geotrellis.test.multiband.load.HadoopLoad
-import geotrellis.util.{HadoopSupport, S3Support}
+
 import org.apache.spark.SparkContext
 
-class HadoopIngestTests(@transient implicit val sc: SparkContext) extends Tests with HadoopSupport with S3Support with HadoopLoad
+abstract class HadoopIngestTests extends Tests with HadoopLoad
 
 object HadoopIngestTests {
-  def apply(implicit sc: SparkContext) = new HadoopIngestTests()
+  def apply(implicit _sc: SparkContext) = new HadoopIngestTests {
+    @transient implicit val sc = _sc
+  }
 }

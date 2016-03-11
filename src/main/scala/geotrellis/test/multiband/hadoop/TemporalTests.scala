@@ -1,14 +1,17 @@
 package geotrellis.test.multiband.hadoop
 
+import geotrellis.test.multiband.TemporalTestEnvironment
+
+import geotrellis.spark.SpaceTimeKey
 import geotrellis.spark.io._
 import geotrellis.spark.io.hadoop._
 import geotrellis.spark.io.index.ZCurveKeyIndexMethod
-import geotrellis.test.multiband.TemporalTestEnvironment
-import geotrellis.util.{HadoopSupport, SparkSupport}
+import geotrellis.spark.ingest._
+
 import org.apache.hadoop.fs.Path
 
-trait TemporalTests extends SparkSupport with TemporalTestEnvironment with HadoopSupport with Serializable {
-  @transient lazy val writer = HadoopLayerWriter[K, V, M](new Path(hadoopIngestPath), ZCurveKeyIndexMethod.byYear)
-  @transient lazy val reader = HadoopLayerReader[K, V, M](new Path(hadoopIngestPath))
-  @transient lazy val attributeStore = HadoopAttributeStore(hadoopIngestPath)
+abstract class TemporalTests extends TemporalTestEnvironment {
+  @transient lazy val writer = HadoopLayerWriter[SpaceTimeKey, V, M](new Path(hadoopIngestPath), ZCurveKeyIndexMethod.byYear)
+  @transient lazy val reader = HadoopLayerReader[SpaceTimeKey, V, M](new Path(hadoopIngestPath))
+  @transient lazy val attributeStore = HadoopAttributeStore.default(hadoopIngestPath)
 }

@@ -1,6 +1,15 @@
+/*
 package geotrellis.test.multiband.file
 
-import geotrellis.util.{HadoopSupport, S3Support}
+import geotrellis.test.multiband.load.TemporalHadoopLoad
+
 import org.apache.spark.SparkContext
 
-//class TemporalHadoopIngestFileTests(@transient implicit val sc: SparkContext) extends TemporalFileTests with HadoopSupport with S3Support with TemporalHadoopLoad
+abstract class TemporalHadoopIngestTests extends TemporalTests with TemporalHadoopLoad
+
+object TemporalHadoopIngestTests {
+  def apply(implicit _sc: SparkContext) = new TemporalHadoopIngestTests {
+    @transient implicit val sc = _sc
+  }
+}
+*/

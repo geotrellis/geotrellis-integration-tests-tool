@@ -1,13 +1,15 @@
 package geotrellis.test.multiband.s3
 
+import geotrellis.test.multiband.SpatialTestEnvironment
+
+import geotrellis.spark.SpatialKey
 import geotrellis.spark.io._
 import geotrellis.spark.io.s3._
 import geotrellis.spark.io.index.ZCurveKeyIndexMethod
-import geotrellis.test.multiband.SpatialTestEnvironment
-import geotrellis.util.{HadoopSupport, S3Support, SparkSupport}
+import geotrellis.spark.ingest._
 
-trait Tests extends SparkSupport with SpatialTestEnvironment with S3Support with HadoopSupport with Serializable {
-  @transient lazy val writer = S3LayerWriter[K, V, M](s3Bucket, s3IngestPreifx, ZCurveKeyIndexMethod)
-  @transient lazy val reader = S3LayerReader[K, V, M](s3Bucket, s3IngestPreifx)
+abstract class Tests extends SpatialTestEnvironment {
+  @transient lazy val writer = S3LayerWriter[SpatialKey, V, M](s3Bucket, s3IngestPreifx, ZCurveKeyIndexMethod)
+  @transient lazy val reader = S3LayerReader[SpatialKey, V, M](s3Bucket, s3IngestPreifx)
   @transient lazy val attributeStore = S3AttributeStore(s3Bucket, s3IngestPreifx)
 }

@@ -18,13 +18,17 @@ publishMavenStyle := true
 publishArtifact in Test := false
 pomIncludeRepository := { _ => false }
 
-resolvers += Resolver.bintrayRepo("azavea", "geotrellis")
+resolvers ++= Seq(
+  Resolver.bintrayRepo("azavea", "geotrellis"),
+  Resolver.sonatypeRepo("releases")
+)
 
 libraryDependencies ++= Seq(
   "com.azavea.geotrellis" %% "geotrellis-accumulo"  % "0.10.0-SNAPSHOT",
   "com.azavea.geotrellis" %% "geotrellis-s3"        % "0.10.0-SNAPSHOT",
   "com.azavea.geotrellis" %% "geotrellis-spark"     % "0.10.0-SNAPSHOT",
   "com.azavea.geotrellis" %% "geotrellis-spark-etl" % "0.10.0-SNAPSHOT",
+  "com.chuusai"           %% "shapeless"            % "2.3.0",
   "com.typesafe"           % "config"               % "1.3.0",
   "org.apache.spark"      %% "spark-core"           % "1.5.2" % "provided",
   "org.apache.hadoop"      % "hadoop-client"        % "2.7.1" % "provided",
@@ -32,6 +36,8 @@ libraryDependencies ++= Seq(
 )
 
 addCompilerPlugin("org.spire-math" % "kind-projector" % "0.7.1" cross CrossVersion.binary)
+
+addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
 
 test in assembly := {}
 

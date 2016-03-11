@@ -1,13 +1,14 @@
 package geotrellis.test.multiband.accumulo
 
+import geotrellis.spark.SpatialKey
 import geotrellis.spark.io._
 import geotrellis.spark.io.accumulo._
 import geotrellis.spark.io.index.ZCurveKeyIndexMethod
 import geotrellis.test.multiband.SpatialTestEnvironment
-import geotrellis.util.{HadoopSupport, AccumuloSupport, SparkSupport}
+import geotrellis.util.AccumuloSupport
 
-trait Tests extends SparkSupport with SpatialTestEnvironment with AccumuloSupport with HadoopSupport with Serializable {
-  @transient lazy val writer = AccumuloLayerWriter[K, V, M](instance, table, ZCurveKeyIndexMethod)
-  @transient lazy val reader = AccumuloLayerReader[K, V, M](instance)
+abstract class Tests extends SpatialTestEnvironment with AccumuloSupport {
+  @transient lazy val writer = AccumuloLayerWriter[SpatialKey, V, M](instance, table, ZCurveKeyIndexMethod)
+  @transient lazy val reader = AccumuloLayerReader[SpatialKey, V, M](instance)
   @transient lazy val attributeStore = AccumuloAttributeStore(instance.connector)
 }
