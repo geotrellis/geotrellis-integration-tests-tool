@@ -1,5 +1,6 @@
 package geotrellis.test
 
+import geotrellis.core.LayoutSchemeArg
 import geotrellis.proj4.WebMercator
 import geotrellis.raster._
 import geotrellis.raster.io.geotiff.GeoTiff
@@ -42,11 +43,11 @@ abstract class TestEnvironment[
     extent.fold(reader.read(layerId))(e => reader.read(layerId,  new RDDQuery[K, M].where(Intersects(e))))
   }
 
-  def ingest(layer: String): Unit = {
+  def ingest(layer: String, lsa: LayoutSchemeArg = LayoutSchemeArg.default): Unit = {
     conf.set("io.map.index.interval", "1")
 
     logger.info(s"ingesting tiles into accumulo (${layer})...")
-    FIngest[I, K](loadTiles, WebMercator, ZoomedLayoutScheme(WebMercator), pyramid = true) { case (rdd, z) =>
+    FIngest[I, K](loadTiles, lsa.crs, lsa.layoutScheme, lsa.tileSize, pyramid = true) { case (rdd, z) =>
       if (z == 8) {
         if (rdd.filter(!_._2.isNoDataTile).count != 64) {
           logger.error(s"Incorrect ingest ${layer}")

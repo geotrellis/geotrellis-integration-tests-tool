@@ -16,6 +16,7 @@ object FMultiBandIngest {
     sourceTiles: RDD[(T, MultiBandTile)],
     destCRS: CRS,
     layoutScheme: LayoutScheme,
+    tileSize: Int = 256,
     pyramid: Boolean = false,
     cacheLevel: StorageLevel = StorageLevel.NONE,
     resampleMethod: ResampleMethod = NearestNeighbor,
@@ -23,7 +24,7 @@ object FMultiBandIngest {
     bufferSize: Option[Int] = None)
     (sink: (MultiBandRasterRDD[K], Int) => Unit): Unit =
   {
-    val (_, rasterMetaData) = RasterMetaData.fromRdd(sourceTiles, layoutScheme)
+    val (_, rasterMetaData) = RasterMetaData.fromRdd(sourceTiles, FloatingLayoutScheme(tileSize))
     val tiledRdd = sourceTiles.tileToLayout(rasterMetaData, resampleMethod).cache()
     val contextRdd = new ContextRDD(tiledRdd, rasterMetaData)
     val (zoom, rasterRdd) = bufferSize.fold(contextRdd.reproject(destCRS, layoutScheme))(contextRdd.reproject(destCRS, layoutScheme, _))

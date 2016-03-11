@@ -1,6 +1,15 @@
 package geotrellis.core
 
-import geotrellis.spark.tiling.LayoutScheme
-import geotrellis.vector.io.json.CRS
+import geotrellis.proj4.{CRS, WebMercator}
+import geotrellis.spark.tiling.{ZoomedLayoutScheme, LayoutScheme}
 
-case class LayoutSchemeArg(crs: CRS, layoutScheme: LayoutScheme, floatingPoint: Boolean = false)
+case class LayoutSchemeArg(
+  getLayoutScheme: (CRS, Int) => LayoutScheme,
+  crs            : CRS = WebMercator,
+  tileSize       : Int = 256) {
+  def layoutScheme = getLayoutScheme(crs, tileSize)
+}
+
+object LayoutSchemeArg {
+  def default = LayoutSchemeArg((crs, ts) => ZoomedLayoutScheme(crs, ts))
+}
