@@ -25,8 +25,7 @@ abstract class SpatialTestEnvironment extends MultibandTestEnvironment[Projected
     for (i <- 0 to expectedRaster.bandCount) {
       val diffArr =
         ingestedRaster
-          .band(i)
-          .toArray
+          .band(i).toArray
           .zip(expectedRasterResampled.band(i).toArray)
           .map { case (v1, v2) => v1 - v2 }
       val diffRaster = Raster(ArrayTile(diffArr, ingestedRaster.cols, ingestedRaster.rows), ingestedRaster.extent)

@@ -23,8 +23,7 @@ abstract class SpatialTestEnvironment extends TestEnvironment[ProjectedExtent, S
     val expectedRasterResampled = expectedRaster.resample(ingestedRaster.rasterExtent)
     val diffArr =
       ingestedRaster
-        .tile
-        .toArray
+        .tile.toArray
         .zip(expectedRasterResampled.tile.toArray)
         .map { case (v1, v2) => v1 - v2 }
     val diffRaster = Raster(ArrayTile(diffArr, ingestedRaster.cols, ingestedRaster.rows), ingestedRaster.extent)
