@@ -1,4 +1,3 @@
-/*
 package geotrellis.test.multiband.accumulo
 
 import geotrellis.test.multiband.load.TemporalHadoopLoad
@@ -12,4 +11,3 @@ object TemporalHadoopIngestTests {
     @transient implicit val sc = _sc
   }
 }
-*/

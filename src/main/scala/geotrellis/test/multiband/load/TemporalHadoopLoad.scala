@@ -1,6 +1,6 @@
 package geotrellis.test.multiband.load
 
-/*import geotrellis.spark.TemporalProjectedExtent
+import geotrellis.spark.TemporalProjectedExtent
 import geotrellis.spark.etl.hadoop.TemporalMultibandGeoTiffHadoopInput
 import geotrellis.test.multiband.TemporalTestEnvironment
 
@@ -21,4 +21,4 @@ trait TemporalHadoopLoad { self: TemporalTestEnvironment =>
     val hadoopInput = new TemporalMultibandGeoTiffHadoopInput()
     hadoopInput(hadoopParams)
   }
-}*/
+}
