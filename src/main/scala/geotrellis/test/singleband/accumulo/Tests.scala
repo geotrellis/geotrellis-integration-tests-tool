@@ -8,7 +8,7 @@ import geotrellis.test.singleband.SpatialTestEnvironment
 import geotrellis.util.AccumuloSupport
 
 abstract class Tests extends SpatialTestEnvironment with AccumuloSupport {
-  @transient lazy val writer = AccumuloLayerWriter[SpatialKey, V, M](instance, table, ZCurveKeyIndexMethod)
-  @transient lazy val reader = AccumuloLayerReader[SpatialKey, V, M](instance)
+  @transient lazy val writer = AccumuloLayerWriter(instance, table)
+  @transient lazy val reader = AccumuloLayerReader(instance)
   @transient lazy val attributeStore = AccumuloAttributeStore(instance.connector)
 }

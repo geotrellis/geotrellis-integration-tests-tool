@@ -1,7 +1,7 @@
 package geotrellis
 
-import geotrellis.spark.{RasterRDD, SpaceTimeKey}
+import geotrellis.spark.{TileLayerRDD, SpaceTimeKey}
 
 package object core {
-  implicit class withSpaceTimeRasterRDDMethods(val rdd: RasterRDD[SpaceTimeKey]) extends SpaceTimeRasterRDDMethods
+  implicit class withSpaceTimeTileLayerRDDMethods(val rdd: TileLayerRDD[SpaceTimeKey]) extends SpaceTimeTileLayerRDDMethods
 }

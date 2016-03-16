@@ -11,7 +11,7 @@ import geotrellis.spark.ingest._
 import org.apache.hadoop.fs.Path
 
 abstract class TemporalTests extends TemporalTestEnvironment {
-  @transient lazy val writer = HadoopLayerWriter[SpaceTimeKey, V, M](new Path(hadoopIngestPath), ZCurveKeyIndexMethod.byYear)
-  @transient lazy val reader = HadoopLayerReader[SpaceTimeKey, V, M](new Path(hadoopIngestPath))
-  @transient lazy val attributeStore = HadoopAttributeStore.default(hadoopIngestPath)
+  @transient lazy val writer = HadoopLayerWriter(new Path(hadoopIngestPath))
+  @transient lazy val reader = HadoopLayerReader(new Path(hadoopIngestPath))
+  @transient lazy val attributeStore = HadoopAttributeStore(hadoopIngestPath)
 }

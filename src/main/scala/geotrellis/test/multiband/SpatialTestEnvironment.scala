@@ -3,7 +3,7 @@ package geotrellis.test.multiband
 import geotrellis.test._
 
 import geotrellis.raster._
-import geotrellis.raster.io.geotiff.MultiBandGeoTiff
+import geotrellis.raster.io.geotiff.MultibandGeoTiff
 import geotrellis.spark.io.AttributeStore.Fields
 import geotrellis.spark.io._
 import geotrellis.spark.ingest._
@@ -12,8 +12,8 @@ import geotrellis.vector.ProjectedExtent
 
 abstract class SpatialTestEnvironment extends MultibandTestEnvironment[ProjectedExtent, SpatialKey] {
   def validate(layerId: LayerId): Unit = {
-    val metadata = attributeStore.readLayerAttribute[RasterMetaData](layerId, Fields.metaData)
-    val expected = MultiBandGeoTiff(mvValidationTiffLocal)
+    val metadata = attributeStore.readMetadata[TileLayerMetadata[SpatialKey]](layerId)
+    val expected = MultibandGeoTiff(mvValidationTiffLocal)
     val expectedRaster = expected.raster.reproject(expected.crs, metadata.crs)
 
     val ingestedRaster =
@@ -35,8 +35,8 @@ abstract class SpatialTestEnvironment extends MultibandTestEnvironment[Projected
       writeRaster(diffRaster, s"${validationDir}diff.$i.${this.getClass.getName}")
     }
 
-    writeMultiBandRaster(ingestedRaster, s"${validationDir}ingested.${this.getClass.getName}")
-    writeMultiBandRaster(expectedRasterResampled, s"${validationDir}expected.${this.getClass.getName}")
+    writeMultibandRaster(ingestedRaster, s"${validationDir}ingested.${this.getClass.getName}")
+    writeMultibandRaster(expectedRasterResampled, s"${validationDir}expected.${this.getClass.getName}")
 
     println(s"validation.size.eq: ${ingestedRaster.tile.size == expectedRasterResampled.tile.size}")
   }

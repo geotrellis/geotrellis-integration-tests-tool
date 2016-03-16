@@ -8,7 +8,7 @@ import geotrellis.test.singleband.TemporalTestEnvironment
 import geotrellis.util.FileSupport
 
 abstract class TemporalTests extends TemporalTestEnvironment with FileSupport {
-  @transient lazy val writer = FileLayerWriter[SpaceTimeKey, V, M](fileIngestPath, ZCurveKeyIndexMethod.byYear)
-  @transient lazy val reader = FileLayerReader[SpaceTimeKey, V, M](fileIngestPath)
+  @transient lazy val writer = FileLayerWriter(fileIngestPath)
+  @transient lazy val reader = FileLayerReader(fileIngestPath)
   @transient lazy val attributeStore = FileAttributeStore(fileIngestPath)
 }

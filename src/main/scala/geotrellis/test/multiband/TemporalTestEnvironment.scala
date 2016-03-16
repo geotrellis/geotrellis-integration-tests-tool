@@ -1,7 +1,7 @@
 package geotrellis.test.multiband
 
 import geotrellis.raster.{ArrayTile, Raster}
-import geotrellis.raster.io.geotiff.SingleBandGeoTiff
+import geotrellis.raster.io.geotiff.SinglebandGeoTiff
 import geotrellis.spark._
 import geotrellis.spark.io.AttributeStore.Fields
 import geotrellis.spark.io._

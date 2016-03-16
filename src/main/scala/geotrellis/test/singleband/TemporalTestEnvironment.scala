@@ -1,7 +1,7 @@
 package geotrellis.test.singleband
 
 import geotrellis.raster.{ArrayTile, Raster}
-import geotrellis.raster.io.geotiff.SingleBandGeoTiff
+import geotrellis.raster.io.geotiff.SinglebandGeoTiff
 import geotrellis.spark._
 import geotrellis.spark.io.AttributeStore.Fields
 import geotrellis.spark.io._
@@ -13,12 +13,12 @@ import org.joda.time.DateTime
 
 abstract class TemporalTestEnvironment extends TestEnvironment[TemporalProjectedExtent, SpaceTimeKey] {
   def validate(layerId: LayerId): Unit = {
-    val metadata = attributeStore.readLayerAttribute[RasterMetaData](layerId, Fields.metaData)
-    val expected = SingleBandGeoTiff(mvValidationTiffLocal)
+    val metadata = attributeStore.readMetadata[TileLayerMetadata[SpaceTimeKey]](layerId)
+    val expected = SinglebandGeoTiff(mvValidationTiffLocal)
     val expectedRaster = expected.raster.reproject(expected.crs, metadata.crs)
 
     val ingestedRaster =
-      read(layerId, Some(expectedRaster.extent))
+      withSpaceTimeTileLayerRDDMethods(read(layerId, Some(expectedRaster.extent)))
         .stitch(TemporalKey(DateTime.now))
         .crop(expectedRaster.extent)
 

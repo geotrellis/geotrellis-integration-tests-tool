@@ -1,5 +1,6 @@
 package geotrellis
 
+import geotrellis.spark.io.index.ZCurveKeyIndexMethod
 import geotrellis.test._
 import geotrellis.util.SparkSupport
 
@@ -10,7 +11,7 @@ object Main extends App with LazyLogging {
 
   tests foreach { get =>
     val test = get()
-    test.ingest()
+    test.ingest(ZCurveKeyIndexMethod)
     test.combine()
     test.validate()
   }

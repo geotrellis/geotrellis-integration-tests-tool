@@ -8,7 +8,7 @@ import geotrellis.test.singleband.SpatialTestEnvironment
 import geotrellis.util.FileSupport
 
 abstract class Tests extends SpatialTestEnvironment with FileSupport {
-  @transient lazy val writer = FileLayerWriter[SpatialKey, V, M](fileIngestPath, ZCurveKeyIndexMethod)
-  @transient lazy val reader = FileLayerReader[SpatialKey, V, M](fileIngestPath)
+  @transient lazy val writer = FileLayerWriter(fileIngestPath)
+  @transient lazy val reader = FileLayerReader(fileIngestPath)
   @transient lazy val attributeStore = FileAttributeStore(fileIngestPath)
 }

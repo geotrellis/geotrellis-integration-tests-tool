@@ -7,10 +7,12 @@ import geotrellis.raster.io.geotiff.GeoTiff
 import geotrellis.raster.io.geotiff.writer.GeoTiffWriter
 import geotrellis.spark.ingest._
 import geotrellis.spark.io._
+import geotrellis.spark.io.avro.AvroRecordCodec
+import geotrellis.spark.io.index.{KeyIndexMethod, ZCurveKeyIndexMethod}
 import geotrellis.spark.tiling.{TilerKeyMethods, ZoomedLayoutScheme}
 import geotrellis.spark._
 import geotrellis.util.{S3Support, HadoopSupport, SparkSupport}
-import geotrellis.vector.Extent
+import geotrellis.vector.{ProjectedExtent, Extent}
 
 import org.apache.spark.rdd.RDD
 import spray.json.JsonFormat
@@ -19,15 +21,15 @@ import scala.reflect.ClassTag
 import scala.util.Random
 
 abstract class TestEnvironment[
-  I: ProjectedExtentComponent: ClassTag: ? => TilerKeyMethods[I, K],
-  K: SpatialComponent: Boundable: ClassTag
+  I: ClassTag: ? => TilerKeyMethods[I, K]: Component[?, ProjectedExtent],
+  K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag
 ] extends SparkSupport with HadoopSupport with S3Support with Serializable {
   type V = Tile
-  type M = RasterMetaData
+  type M = TileLayerMetadata[K]
 
-  type TestReader = FilteringLayerReader[LayerId, K, M, RDD[(K, V)] with Metadata[M]]
-  type TestWriter = Writer[LayerId, RDD[(K, V)] with Metadata[M]]
-  type TestAttributeStore = AttributeStore[JsonFormat]
+  type TestReader = FilteringLayerReader[LayerId]
+  type TestWriter = LayerWriter[LayerId]
+  type TestAttributeStore = AttributeStore
 
   val layerName: String
   val zoom: Int
@@ -40,14 +42,14 @@ abstract class TestEnvironment[
 
   def read(layerId: LayerId, extent: Option[Extent] = None): RDD[(K, V)] with Metadata[M] = {
     logger.info(s"reading ${layerId}...")
-    extent.fold(reader.read(layerId))(e => reader.read(layerId,  new RDDQuery[K, M].where(Intersects(e))))
+    extent.fold(reader.read[K, V, M](layerId))(e => reader.read[K, V, M](layerId,  new LayerQuery[K, M].where(Intersects(e))))
   }
 
-  def ingest(layer: String, lsa: LayoutSchemeArg = LayoutSchemeArg.default): Unit = {
+  def ingest(layer: String, keyIndexMethod: KeyIndexMethod[K], lsa: LayoutSchemeArg = LayoutSchemeArg.default): Unit = {
     conf.set("io.map.index.interval", "1")
 
     logger.info(s"ingesting tiles into accumulo (${layer})...")
-    FIngest[I, K](loadTiles, lsa.crs, lsa.layoutScheme, lsa.tileSize, pyramid = true) { case (rdd, z) =>
+    Ingest[I, K](loadTiles, lsa.crs, lsa.layoutScheme, pyramid = true) { case (rdd, z) =>
       if (z == 8) {
         if (rdd.filter(!_._2.isNoDataTile).count != 64) {
           logger.error(s"Incorrect ingest ${layer}")
@@ -55,7 +57,7 @@ abstract class TestEnvironment[
         }
       }
 
-      writer.write(LayerId(layer, z), rdd)
+      writer.write[K, V, M](LayerId(layer, z), rdd, keyIndexMethod)
     }
   }
 
@@ -89,7 +91,7 @@ abstract class TestEnvironment[
 
   def validate(layerId: LayerId): Unit
 
-  def ingest(): Unit = ingest(layerName)
+  def ingest(keyIndexMethod: KeyIndexMethod[K]): Unit = ingest(layerName, keyIndexMethod)
   def combine(): K = combine(LayerId(layerName, zoom))
   def validate(): Unit = validate(LayerId(layerName, zoom))
 
@@ -98,7 +100,7 @@ abstract class TestEnvironment[
     raster.tile.renderPng().write(s"${dir}.png")
   }
 
-  def writeMultiBandRaster(raster: Raster[MultiBandTile], dir: String): Unit = {
+  def writeMultibandRaster(raster: Raster[MultibandTile], dir: String): Unit = {
     GeoTiffWriter.write(GeoTiff(raster, WebMercator), s"${dir}.tiff")
   }
 }

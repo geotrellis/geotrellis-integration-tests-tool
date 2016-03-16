@@ -1,7 +1,7 @@
 package geotrellis.test.singleband
 
 import geotrellis.raster._
-import geotrellis.raster.io.geotiff.SingleBandGeoTiff
+import geotrellis.raster.io.geotiff.SinglebandGeoTiff
 import geotrellis.spark.io.AttributeStore.Fields
 import geotrellis.spark.io._
 import geotrellis.spark.ingest._
@@ -11,8 +11,8 @@ import geotrellis.vector.ProjectedExtent
 
 abstract class SpatialTestEnvironment extends TestEnvironment[ProjectedExtent, SpatialKey] {
   def validate(layerId: LayerId): Unit = {
-    val metadata = attributeStore.readLayerAttribute[RasterMetaData](layerId, Fields.metaData)
-    val expected = SingleBandGeoTiff(mvValidationTiffLocal)
+    val metadata = attributeStore.readMetadata[TileLayerMetadata[SpatialKey]](layerId)
+    val expected = SinglebandGeoTiff(mvValidationTiffLocal)
     val expectedRaster = expected.raster.reproject(expected.crs, metadata.crs)
 
     val ingestedRaster =

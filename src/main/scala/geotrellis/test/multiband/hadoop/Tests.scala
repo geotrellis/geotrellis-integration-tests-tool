@@ -11,7 +11,7 @@ import geotrellis.spark.ingest._
 import org.apache.hadoop.fs.Path
 
 abstract class Tests extends SpatialTestEnvironment {
-  @transient lazy val writer = HadoopLayerWriter[SpatialKey, V, M](new Path(hadoopIngestPath), ZCurveKeyIndexMethod)
-  @transient lazy val reader = HadoopLayerReader[SpatialKey, V, M](new Path(hadoopIngestPath))
-  @transient lazy val attributeStore = HadoopAttributeStore.default(hadoopIngestPath)
+  @transient lazy val writer = HadoopLayerWriter(new Path(hadoopIngestPath))
+  @transient lazy val reader = HadoopLayerReader(new Path(hadoopIngestPath))
+  @transient lazy val attributeStore = HadoopAttributeStore(hadoopIngestPath)
 }
