@@ -1,6 +1,6 @@
 package geotrellis.test.multiband
 
-import geotrellis.raster.{ArrayTile, Raster}
+import geotrellis.raster.{MultibandTile, ArrayTile, Raster}
 import geotrellis.raster.io.geotiff.SinglebandGeoTiff
 import geotrellis.spark._
 import geotrellis.spark.io.AttributeStore.Fields
@@ -11,8 +11,4 @@ import geotrellis.core._
 
 import org.joda.time.DateTime
 
-abstract class TemporalTestEnvironment extends MultibandTestEnvironment[TemporalProjectedExtent, SpaceTimeKey] {
-  def validate(layerId: LayerId): Unit = {
-    //
-  }
-}
+abstract class TemporalTestEnvironment extends TestEnvironment[TemporalProjectedExtent, SpaceTimeKey, MultibandTile]

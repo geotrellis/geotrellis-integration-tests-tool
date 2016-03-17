@@ -1,5 +1,7 @@
 package geotrellis
 
+import geotrellis.spark._
+import geotrellis.spark.io._
 import geotrellis.spark.io.index.ZCurveKeyIndexMethod
 import geotrellis.test._
 import geotrellis.util.SparkSupport
@@ -13,7 +15,7 @@ object Main extends App with LazyLogging {
     val test = get()
     test.ingest(ZCurveKeyIndexMethod)
     test.combine()
-    test.validate()
+    test.validate(None) // time for space time keys
   }
 
 

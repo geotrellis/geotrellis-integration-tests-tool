@@ -2,6 +2,7 @@ package geotrellis.core
 
 import geotrellis.raster._
 import geotrellis.spark._
+import org.joda.time.DateTime
 
 trait SpaceTimeTileLayerRDDMethods {
   val rdd: TileLayerRDD[SpaceTimeKey]
@@ -12,4 +13,6 @@ trait SpaceTimeTileLayerRDDMethods {
       .map { case (key, tile) ⇒ key.spatialKey → tile }
     }.stitch
   }
+
+  def stitch(dt: Option[DateTime]): Raster[Tile] = stitch(TemporalKey(dt.get))
 }

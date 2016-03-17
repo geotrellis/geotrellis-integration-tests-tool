@@ -1,42 +1,40 @@
 package geotrellis.test
 
 import geotrellis.core.LayoutSchemeArg
+import geotrellis.core.functor.{PolyValidate, PolyCombine, PolyIngest}
 import geotrellis.proj4.WebMercator
 import geotrellis.raster._
 import geotrellis.raster.io.geotiff.GeoTiff
 import geotrellis.raster.io.geotiff.writer.GeoTiffWriter
-import geotrellis.spark.ingest._
 import geotrellis.spark.io._
 import geotrellis.spark.io.avro.AvroRecordCodec
-import geotrellis.spark.io.index.{KeyIndexMethod, ZCurveKeyIndexMethod}
-import geotrellis.spark.tiling.{TilerKeyMethods, ZoomedLayoutScheme}
+import geotrellis.spark.io.index.KeyIndexMethod
+import geotrellis.spark.tiling.TilerKeyMethods
 import geotrellis.spark._
 import geotrellis.util.{S3Support, HadoopSupport, SparkSupport}
 import geotrellis.vector.{ProjectedExtent, Extent}
 
 import org.apache.spark.rdd.RDD
+import org.joda.time.DateTime
 import spray.json.JsonFormat
+import shapeless._
+import shapeless.poly._
 
 import scala.reflect.ClassTag
-import scala.util.Random
 
 abstract class TestEnvironment[
   I: ClassTag: ? => TilerKeyMethods[I, K]: Component[?, ProjectedExtent],
-  K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag
+  K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag,
+  V: AvroRecordCodec: ClassTag
 ] extends SparkSupport with HadoopSupport with S3Support with Serializable {
-  type V = Tile
   type M = TileLayerMetadata[K]
-
-  type TestReader = FilteringLayerReader[LayerId]
-  type TestWriter = LayerWriter[LayerId]
-  type TestAttributeStore = AttributeStore
 
   val layerName: String
   val zoom: Int
 
-  val writer: TestWriter
-  val reader: TestReader
-  val attributeStore: TestAttributeStore
+  val writer: LayerWriter[LayerId]
+  val reader: FilteringLayerReader[LayerId]
+  val attributeStore: AttributeStore
 
   def loadTiles: RDD[(I, V)]
 
@@ -45,55 +43,69 @@ abstract class TestEnvironment[
     extent.fold(reader.read[K, V, M](layerId))(e => reader.read[K, V, M](layerId,  new LayerQuery[K, M].where(Intersects(e))))
   }
 
-  def ingest(layer: String, keyIndexMethod: KeyIndexMethod[K], lsa: LayoutSchemeArg = LayoutSchemeArg.default): Unit = {
+  def ingest(layer: String, keyIndexMethod: KeyIndexMethod[K], lsa: LayoutSchemeArg = LayoutSchemeArg.default)
+            (implicit cse:
+               Case[PolyIngest.type,
+                    String ::
+                    KeyIndexMethod[K] ::
+                    LayoutSchemeArg ::
+                    RDD[(I, V)] ::
+                    LayerWriter[LayerId] :: HNil]): Unit = {
     conf.set("io.map.index.interval", "1")
-
     logger.info(s"ingesting tiles into accumulo (${layer})...")
-    Ingest[I, K](loadTiles, lsa.crs, lsa.layoutScheme, pyramid = true) { case (rdd, z) =>
-      if (z == 8) {
-        if (rdd.filter(!_._2.isNoDataTile).count != 64) {
-          logger.error(s"Incorrect ingest ${layer}")
-          throw new Exception(s"Incorrect ingest ${layer}")
-        }
-      }
-
-      writer.write[K, V, M](LayerId(layer, z), rdd, keyIndexMethod)
-    }
+    PolyIngest(layer, keyIndexMethod, lsa, loadTiles, writer)
   }
 
-  def combine(layerId: LayerId): K = {
+  def combine(layerId: LayerId)
+             (implicit cse: Case[PolyCombine.type, LayerId :: RDD[(K, V)] with Metadata[M] :: HNil]) = {
     logger.info(s"combineLayer ${layerId}...")
     val rdd = read(layerId)
-    val crdd =
-      (rdd union rdd)
-        .map { case (k, v) => (k, (k, v)) }
-        .combineByKey(createTiles[K, V], mergeTiles1[K, V], mergeTiles2[K, V])
-        .map { case (key: K, seq: Seq[(K, V)]) =>
-          val tiles = seq.map(_._2)
-          key -> tiles(0).combine(tiles(1))(_ + _)
-        }
-
-    crdd.cache()
-
-    val keys = crdd.keys.collect()
-    val key  = keys(Random.nextInt(keys.length))
-
-    val ctile = crdd.lookup(key).map(_.toArray).head
-    val tile  = rdd.lookup(key).map(t => t.combine(t)(_ + _).toArray).head
-
-    if(!ctile.sameElements(tile)) {
-      logger.error(s"Incorrect combine layers ${layerId}")
-      throw new Exception(s"Incorrect combine layers ${layerId}")
-    }
-
-    key
+    PolyCombine(layerId, rdd)
   }
 
-  def validate(layerId: LayerId): Unit
+  //def validate(layerId: LayerId): Unit
 
-  def ingest(keyIndexMethod: KeyIndexMethod[K]): Unit = ingest(layerName, keyIndexMethod)
-  def combine(): K = combine(LayerId(layerName, zoom))
-  def validate(): Unit = validate(LayerId(layerName, zoom))
+  def validate(layerId: LayerId, dt: Option[DateTime])
+              (implicit cse:
+                 Case.Aux[
+                   PolyValidate.type,
+                   TileLayerMetadata[K] ::
+                   String  ::
+                   LayerId ::
+                   Option[DateTime] ::
+                   ((LayerId, Option[Extent]) => RDD[(K, V)] with Metadata[M]) :: HNil,
+                   (Option[Raster[Tile]], Option[Raster[Tile]], List[Raster[Tile]])]): Unit = {
+    val metadata = attributeStore.readMetadata[TileLayerMetadata[K]](layerId)
+    val (ingestedRaster, expectedRasterResampled, diffRasters) =
+      PolyValidate(metadata, mvValidationTiffLocal, layerId, dt, read _)
+
+    ingestedRaster.foreach(writeRaster(_, s"${validationDir}ingested.${this.getClass.getName}"))
+    expectedRasterResampled.foreach(writeRaster(_, s"${validationDir}expected.${this.getClass.getName}"))
+    diffRasters.foreach(writeRaster(_, s"${validationDir}diff.${this.getClass.getName}"))
+  }
+
+  def ingest(keyIndexMethod: KeyIndexMethod[K])
+            (implicit cse:
+               Case[
+                 PolyIngest.type,
+                 String ::
+                 KeyIndexMethod[K] ::
+                 LayoutSchemeArg ::
+                 RDD[(I, V)] ::
+                 LayerWriter[LayerId] :: HNil]): Unit = ingest(layerName, keyIndexMethod)
+  def combine()(implicit cse: Case[
+                                PolyCombine.type,
+                                LayerId ::
+                                RDD[(K, V)] with Metadata[M] :: HNil]): Unit = combine(LayerId(layerName, zoom))
+  def validate(dt: Option[DateTime])(implicit cse: Case.Aux[
+                                                     PolyValidate.type,
+                                                     TileLayerMetadata[K] ::
+                                                     String ::
+                                                     LayerId ::
+                                                     Option[DateTime] ::
+                                                     ((LayerId, Option[Extent]) => RDD[(K, V)] with Metadata[M]) :: HNil,
+                                                     (Option[Raster[Tile]], Option[Raster[Tile]], List[Raster[Tile]])]): Unit =
+    validate(LayerId(layerName, zoom), dt)
 
   def writeRaster(raster: Raster[Tile], dir: String): Unit = {
     GeoTiffWriter.write(GeoTiff(raster, WebMercator), s"${dir}.tiff")
