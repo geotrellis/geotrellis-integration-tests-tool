@@ -81,9 +81,9 @@ abstract class TestEnvironment[
     val (ingestedRaster, expectedRasterResampled, diffRasters) =
       PolyValidate(metadata, mvValidationTiffLocal, layerId, dt, read _)
 
-    ocse(ingestedRaster, s"${validationDir}ingested.${this.getClass.getName}")
-    ocse(expectedRasterResampled, s"${validationDir}expected.${this.getClass.getName}")
-    lcse(diffRasters, s"${validationDir}diff.${this.getClass.getName}")
+    writeRaster(ingestedRaster, s"${validationDir}ingested.${this.getClass.getName}")
+    writeRaster(expectedRasterResampled, s"${validationDir}expected.${this.getClass.getName}")
+    writeRasters(diffRasters, s"${validationDir}diff.${this.getClass.getName}")
   }
 
   def ingest(keyIndexMethod: KeyIndexMethod[K])
