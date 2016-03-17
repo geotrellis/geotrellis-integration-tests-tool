@@ -1,9 +1,6 @@
 package geotrellis.test.singleband.file
 
-import geotrellis.spark.SpatialKey
-import geotrellis.spark.io._
 import geotrellis.spark.io.file._
-import geotrellis.spark.io.index.ZCurveKeyIndexMethod
 import geotrellis.test.singleband.SpatialTestEnvironment
 import geotrellis.util.FileSupport
 

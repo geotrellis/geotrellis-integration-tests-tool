@@ -1,4 +1,4 @@
-package geotrellis.core
+package geotrellis.core.spark
 
 import geotrellis.raster._
 import geotrellis.spark._
@@ -10,7 +10,7 @@ trait SpaceTimeTileLayerRDDMethods {
   def stitch(tk: TemporalKey): Raster[Tile] = {
     rdd.withContext {
       _.filter { case (key, value) => key.temporalKey == tk }
-      .map { case (key, tile) ⇒ key.spatialKey → tile }
+      .map { case (key, tile) => key.spatialKey -> tile }
     }.stitch
   }
 

@@ -1,7 +1,7 @@
 package geotrellis.test
 
 import geotrellis.core.LayoutSchemeArg
-import geotrellis.core.functor.{PolyValidate, PolyCombine, PolyIngest}
+import geotrellis.core.functor.{PolyWrite, PolyValidate, PolyCombine, PolyIngest}
 import geotrellis.proj4.WebMercator
 import geotrellis.raster._
 import geotrellis.raster.io.geotiff.GeoTiff
@@ -25,7 +25,7 @@ import scala.reflect.ClassTag
 abstract class TestEnvironment[
   I: ClassTag: ? => TilerKeyMethods[I, K]: Component[?, ProjectedExtent],
   K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag,
-  V: AvroRecordCodec: ClassTag
+  V <: CellGrid: AvroRecordCodec: ClassTag
 ] extends SparkSupport with HadoopSupport with S3Support with Serializable {
   type M = TileLayerMetadata[K]
 
@@ -74,14 +74,16 @@ abstract class TestEnvironment[
                    LayerId ::
                    Option[DateTime] ::
                    ((LayerId, Option[Extent]) => RDD[(K, V)] with Metadata[M]) :: HNil,
-                   (Option[Raster[Tile]], Option[Raster[Tile]], List[Raster[Tile]])]): Unit = {
+                   (Option[Raster[V]], Option[Raster[V]], List[Raster[V]])],
+                      ocse: Case[PolyWrite.type, Option[Raster[V]] :: String :: HNil],
+                      lcse: Case[PolyWrite.type, List[Raster[V]] :: String :: HNil]): Unit = {
     val metadata = attributeStore.readMetadata[TileLayerMetadata[K]](layerId)
     val (ingestedRaster, expectedRasterResampled, diffRasters) =
       PolyValidate(metadata, mvValidationTiffLocal, layerId, dt, read _)
 
-    ingestedRaster.foreach(writeRaster(_, s"${validationDir}ingested.${this.getClass.getName}"))
-    expectedRasterResampled.foreach(writeRaster(_, s"${validationDir}expected.${this.getClass.getName}"))
-    diffRasters.foreach(writeRaster(_, s"${validationDir}diff.${this.getClass.getName}"))
+    ocse(ingestedRaster, s"${validationDir}ingested.${this.getClass.getName}")
+    ocse(expectedRasterResampled, s"${validationDir}expected.${this.getClass.getName}")
+    lcse(diffRasters, s"${validationDir}diff.${this.getClass.getName}")
   }
 
   def ingest(keyIndexMethod: KeyIndexMethod[K])
@@ -104,15 +106,27 @@ abstract class TestEnvironment[
                                                      LayerId ::
                                                      Option[DateTime] ::
                                                      ((LayerId, Option[Extent]) => RDD[(K, V)] with Metadata[M]) :: HNil,
-                                                     (Option[Raster[Tile]], Option[Raster[Tile]], List[Raster[Tile]])]): Unit =
+                                                     (Option[Raster[V]], Option[Raster[V]], List[Raster[V]])],
+                                              ocse: Case[PolyWrite.type, Option[Raster[V]] :: String :: HNil],
+                                              lcse: Case[PolyWrite.type, List[Raster[V]] :: String :: HNil]): Unit =
     validate(LayerId(layerName, zoom), dt)
+  
+  def validate()(implicit cse: Case.Aux[
+                                PolyValidate.type,
+                                TileLayerMetadata[K] ::
+                                String ::
+                                LayerId ::
+                                Option[DateTime] ::
+                                ((LayerId, Option[Extent]) => RDD[(K, V)] with Metadata[M]) :: HNil,
+                                (Option[Raster[V]], Option[Raster[V]], List[Raster[V]])],
+                          ocse: Case[PolyWrite.type, Option[Raster[V]] :: String :: HNil],
+                          lcse: Case[PolyWrite.type, List[Raster[V]] :: String :: HNil]): Unit = validate(None)
 
-  def writeRaster(raster: Raster[Tile], dir: String): Unit = {
-    GeoTiffWriter.write(GeoTiff(raster, WebMercator), s"${dir}.tiff")
-    raster.tile.renderPng().write(s"${dir}.png")
-  }
+  def writeRaster[T <: CellGrid](raster: Option[Raster[T]], dir: String)
+                                (implicit cse: Case[PolyWrite.type, Option[Raster[T]] :: String :: HNil]): Unit =
+    PolyWrite(raster, dir)
 
-  def writeMultibandRaster(raster: Raster[MultibandTile], dir: String): Unit = {
-    GeoTiffWriter.write(GeoTiff(raster, WebMercator), s"${dir}.tiff")
-  }
+  def writeRasters[T <: CellGrid](rasters: List[Raster[T]], dir: String)
+                                 (implicit cse: Case[PolyWrite.type, List[Raster[T]] :: String :: HNil]): Unit =
+    PolyWrite(rasters, dir)
 }

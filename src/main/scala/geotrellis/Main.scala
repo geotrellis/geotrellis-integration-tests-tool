@@ -15,10 +15,8 @@ object Main extends App with LazyLogging {
     val test = get()
     test.ingest(ZCurveKeyIndexMethod)
     test.combine()
-    test.validate(None) // time for space time keys
+    test.validate()
   }
-
-
 
   logger.info("completed")
   sc.stop()

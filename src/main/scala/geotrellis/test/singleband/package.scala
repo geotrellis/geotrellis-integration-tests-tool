@@ -12,10 +12,14 @@ package object singleband {
       () => s3.HadoopIngestTests.apply,
       () => s3.S3IngestTests.apply,
       () => file.HadoopIngestTests.apply,
-      () => file.S3IngestTests.apply/*,
+      () => file.S3IngestTests.apply
+    )
+
+  def testsTemporal(implicit sc: SparkContext) =
+    List(
       () => accumulo.TemporalS3IngestTests.apply,
       () => hadoop.TemporalS3IngestTests.apply,
       () => s3.TemporalS3IngestTests.apply,
-      () => file.TemporalS3IngestTests.apply*/
+      () => file.TemporalS3IngestTests.apply
     )
 }
