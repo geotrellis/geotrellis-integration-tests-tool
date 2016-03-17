@@ -62,8 +62,8 @@ object PolyValidate extends Poly5 {
           .map { case (v1, v2) => v1 - v2 }
       val diffRaster: Raster[Tile] = Raster(ArrayTile(diffArr, ingestedRaster.cols, ingestedRaster.rows), ingestedRaster.extent)
 
-      println(s"validation.size.eq: ${ingestedRaster.tile.size == expectedRasterResampled.tile.size}")
-      println(s"validation: ${ingestedRaster.tile.toArray().sameElements(expectedRasterResampled.tile.toArray())}")
+      logger.info(s"validation.size.eq: ${ingestedRaster.tile.size == expectedRasterResampled.tile.size}")
+      logger.info(s"validation: ${ingestedRaster.tile.toArray().sameElements(expectedRasterResampled.tile.toArray())}")
 
       (Option(ingestedRaster), Option(expectedRasterResampled), List(diffRaster))
   }
@@ -89,13 +89,13 @@ object PolyValidate extends Poly5 {
             .zip(expectedRasterResampled.band(i).toArray)
             .map { case (v1, v2) => v1 - v2 }
         val diffRaster = Raster(ArrayTile(diffArr, ingestedRaster.cols, ingestedRaster.rows), ingestedRaster.extent)
-        println(s"band($i) validation: ${ingestedRaster.band(i).toArray().sameElements(expectedRasterResampled.band(i).toArray())}")
+        logger.info(s"band($i) validation: ${ingestedRaster.band(i).toArray().sameElements(expectedRasterResampled.band(i).toArray())}")
         diffRaster: Raster[Tile]
       }.toList
 
-      println(s"validation.size.eq: ${ingestedRaster.tile.size == expectedRasterResampled.tile.size}")
+      logger.info(s"validation.size.eq: ${ingestedRaster.tile.size == expectedRasterResampled.tile.size}")
 
-      (Option(Raster(ingestedRaster.band(0), ingestedRaster.extent)), Option(Raster(expectedRasterResampled.band(0), expectedRasterResampled.extent)), diffRasterList)
+      (Option(ingestedRaster), Option(expectedRasterResampled), diffRasterList)
   }
 
   implicit def spaceTimeMultiband = at[
@@ -119,12 +119,12 @@ object PolyValidate extends Poly5 {
             .zip(expectedRasterResampled.band(i).toArray)
             .map { case (v1, v2) => v1 - v2 }
         val diffRaster = Raster(ArrayTile(diffArr, ingestedRaster.cols, ingestedRaster.rows), ingestedRaster.extent)
-        println(s"band($i) validation: ${ingestedRaster.band(i).toArray().sameElements(expectedRasterResampled.band(i).toArray())}")
+        logger.info(s"band($i) validation: ${ingestedRaster.band(i).toArray().sameElements(expectedRasterResampled.band(i).toArray())}")
         diffRaster: Raster[Tile]
       }.toList
 
-      println(s"validation.size.eq: ${ingestedRaster.tile.size == expectedRasterResampled.tile.size}")
+      logger.info(s"validation.size.eq: ${ingestedRaster.tile.size == expectedRasterResampled.tile.size}")
 
-      (Option(Raster(ingestedRaster.band(0), ingestedRaster.extent)), Option(Raster(expectedRasterResampled.band(0), expectedRasterResampled.extent)), diffRasterList)
+      (Option(ingestedRaster), Option(expectedRasterResampled), diffRasterList)
   }
 }

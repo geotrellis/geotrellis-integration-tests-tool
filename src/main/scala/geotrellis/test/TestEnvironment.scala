@@ -2,10 +2,7 @@ package geotrellis.test
 
 import geotrellis.core.LayoutSchemeArg
 import geotrellis.core.functor.{PolyWrite, PolyValidate, PolyCombine, PolyIngest}
-import geotrellis.proj4.WebMercator
 import geotrellis.raster._
-import geotrellis.raster.io.geotiff.GeoTiff
-import geotrellis.raster.io.geotiff.writer.GeoTiffWriter
 import geotrellis.spark.io._
 import geotrellis.spark.io.avro.AvroRecordCodec
 import geotrellis.spark.io.index.KeyIndexMethod
@@ -44,13 +41,12 @@ abstract class TestEnvironment[
   }
 
   def ingest(layer: String, keyIndexMethod: KeyIndexMethod[K], lsa: LayoutSchemeArg = LayoutSchemeArg.default)
-            (implicit cse:
-               Case[PolyIngest.type,
-                    String ::
-                    KeyIndexMethod[K] ::
-                    LayoutSchemeArg ::
-                    RDD[(I, V)] ::
-                    LayerWriter[LayerId] :: HNil]): Unit = {
+            (implicit cse: Case[PolyIngest.type,
+                                String ::
+                                KeyIndexMethod[K] ::
+                                LayoutSchemeArg ::
+                                RDD[(I, V)] ::
+                                LayerWriter[LayerId] :: HNil]): Unit = {
     conf.set("io.map.index.interval", "1")
     logger.info(s"ingesting tiles into accumulo (${layer})...")
     PolyIngest(layer, keyIndexMethod, lsa, loadTiles, writer)
@@ -63,20 +59,16 @@ abstract class TestEnvironment[
     PolyCombine(layerId, rdd)
   }
 
-  //def validate(layerId: LayerId): Unit
-
   def validate(layerId: LayerId, dt: Option[DateTime])
-              (implicit cse:
-                 Case.Aux[
-                   PolyValidate.type,
-                   TileLayerMetadata[K] ::
-                   String  ::
-                   LayerId ::
-                   Option[DateTime] ::
-                   ((LayerId, Option[Extent]) => RDD[(K, V)] with Metadata[M]) :: HNil,
-                   (Option[Raster[V]], Option[Raster[V]], List[Raster[V]])],
-                      ocse: Case[PolyWrite.type, Option[Raster[V]] :: String :: HNil],
-                      lcse: Case[PolyWrite.type, List[Raster[V]] :: String :: HNil]): Unit = {
+              (implicit cse: Case.Aux[PolyValidate.type,
+                                      TileLayerMetadata[K] ::
+                                      String  ::
+                                      LayerId ::
+                                      Option[DateTime] ::
+                                      ((LayerId, Option[Extent]) => RDD[(K, V)] with Metadata[M]) :: HNil,
+                                      (Option[Raster[V]], Option[Raster[V]], List[Raster[V]])],
+                        ocse: Case[PolyWrite.type, Option[Raster[V]] :: String :: HNil],
+                        lcse: Case[PolyWrite.type, List[Raster[V]] :: String :: HNil]): Unit = {
     val metadata = attributeStore.readMetadata[TileLayerMetadata[K]](layerId)
     val (ingestedRaster, expectedRasterResampled, diffRasters) =
       PolyValidate(metadata, mvValidationTiffLocal, layerId, dt, read _)
@@ -87,38 +79,33 @@ abstract class TestEnvironment[
   }
 
   def ingest(keyIndexMethod: KeyIndexMethod[K])
-            (implicit cse:
-               Case[
-                 PolyIngest.type,
-                 String ::
-                 KeyIndexMethod[K] ::
-                 LayoutSchemeArg ::
-                 RDD[(I, V)] ::
-                 LayerWriter[LayerId] :: HNil]): Unit = ingest(layerName, keyIndexMethod)
-  def combine()(implicit cse: Case[
-                                PolyCombine.type,
-                                LayerId ::
-                                RDD[(K, V)] with Metadata[M] :: HNil]): Unit = combine(LayerId(layerName, zoom))
-  def validate(dt: Option[DateTime])(implicit cse: Case.Aux[
-                                                     PolyValidate.type,
-                                                     TileLayerMetadata[K] ::
-                                                     String ::
-                                                     LayerId ::
-                                                     Option[DateTime] ::
-                                                     ((LayerId, Option[Extent]) => RDD[(K, V)] with Metadata[M]) :: HNil,
-                                                     (Option[Raster[V]], Option[Raster[V]], List[Raster[V]])],
+            (implicit cse: Case[PolyIngest.type,
+                                String ::
+                                KeyIndexMethod[K] ::
+                                LayoutSchemeArg ::
+                                RDD[(I, V)] ::
+                                LayerWriter[LayerId] :: HNil]): Unit = ingest(layerName, keyIndexMethod)
+  def combine()(implicit cse: Case[PolyCombine.type,
+                                   LayerId ::
+                                   RDD[(K, V)] with Metadata[M] :: HNil]): Unit = combine(LayerId(layerName, zoom))
+  def validate(dt: Option[DateTime])(implicit cse: Case.Aux[PolyValidate.type,
+                                                            TileLayerMetadata[K] ::
+                                                            String ::
+                                                            LayerId ::
+                                                            Option[DateTime] ::
+                                                            ((LayerId, Option[Extent]) => RDD[(K, V)] with Metadata[M]) :: HNil,
+                                                            (Option[Raster[V]], Option[Raster[V]], List[Raster[V]])],
                                               ocse: Case[PolyWrite.type, Option[Raster[V]] :: String :: HNil],
                                               lcse: Case[PolyWrite.type, List[Raster[V]] :: String :: HNil]): Unit =
     validate(LayerId(layerName, zoom), dt)
   
-  def validate()(implicit cse: Case.Aux[
-                                PolyValidate.type,
-                                TileLayerMetadata[K] ::
-                                String ::
-                                LayerId ::
-                                Option[DateTime] ::
-                                ((LayerId, Option[Extent]) => RDD[(K, V)] with Metadata[M]) :: HNil,
-                                (Option[Raster[V]], Option[Raster[V]], List[Raster[V]])],
+  def validate()(implicit cse: Case.Aux[PolyValidate.type,
+                                        TileLayerMetadata[K] ::
+                                        String ::
+                                        LayerId ::
+                                        Option[DateTime] ::
+                                        ((LayerId, Option[Extent]) => RDD[(K, V)] with Metadata[M]) :: HNil,
+                                        (Option[Raster[V]], Option[Raster[V]], List[Raster[V]])],
                           ocse: Case[PolyWrite.type, Option[Raster[V]] :: String :: HNil],
                           lcse: Case[PolyWrite.type, List[Raster[V]] :: String :: HNil]): Unit = validate(None)
 
