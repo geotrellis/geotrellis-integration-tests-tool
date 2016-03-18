@@ -41,79 +41,71 @@ abstract class TestEnvironment[
   }
 
   def ingest(layer: String, keyIndexMethod: KeyIndexMethod[K], lsa: LayoutSchemeArg = LayoutSchemeArg.default)
-            (implicit cse: Case[PolyIngest.type,
-                                String ::
-                                KeyIndexMethod[K] ::
-                                LayoutSchemeArg ::
-                                RDD[(I, V)] ::
-                                LayerWriter[LayerId] :: HNil]): Unit = {
+            (implicit pi: Case[PolyIngest.type,
+                               String ::
+                               KeyIndexMethod[K] ::
+                               LayoutSchemeArg ::
+                               RDD[(I, V)] ::
+                               LayerWriter[LayerId] :: HNil]): Unit = {
     conf.set("io.map.index.interval", "1")
     logger.info(s"ingesting tiles into accumulo (${layer})...")
     PolyIngest(layer, keyIndexMethod, lsa, loadTiles, writer)
   }
 
   def combine(layerId: LayerId)
-             (implicit cse: Case[PolyCombine.type, LayerId :: RDD[(K, V)] with Metadata[M] :: HNil]) = {
+             (implicit pc: Case[PolyCombine.type, LayerId :: RDD[(K, V)] with Metadata[M] :: HNil]) = {
     logger.info(s"combineLayer ${layerId}...")
     val rdd = read(layerId)
     PolyCombine(layerId, rdd)
   }
 
   def validate(layerId: LayerId, dt: Option[DateTime])
-              (implicit cse: Case.Aux[PolyValidate.type,
-                                      TileLayerMetadata[K] ::
-                                      String  ::
-                                      LayerId ::
-                                      Option[DateTime] ::
-                                      ((LayerId, Option[Extent]) => RDD[(K, V)] with Metadata[M]) :: HNil,
-                                      (Option[Raster[V]], Option[Raster[V]], List[Raster[V]])],
-                        ocse: Case[PolyWrite.type, Option[Raster[V]] :: String :: HNil],
-                        lcse: Case[PolyWrite.type, List[Raster[V]] :: String :: HNil]): Unit = {
+              (implicit pv: Case.Aux[PolyValidate.type,
+                                     TileLayerMetadata[K] ::
+                                     String  ::
+                                     LayerId ::
+                                     Option[DateTime] ::
+                                     ((LayerId, Option[Extent]) => RDD[(K, V)] with Metadata[M]) :: HNil,
+                                     (Option[Raster[V]], Option[Raster[V]], List[Raster[V]])],
+                        rw: Case[PolyWrite.type, Option[Raster[V]] :: String :: HNil],
+                        lw: Case[PolyWrite.type, List[Raster[V]] :: String :: HNil]): Unit = {
     val metadata = attributeStore.readMetadata[TileLayerMetadata[K]](layerId)
     val (ingestedRaster, expectedRasterResampled, diffRasters) =
       PolyValidate(metadata, mvValidationTiffLocal, layerId, dt, read _)
 
-    writeRaster(ingestedRaster, s"${validationDir}ingested.${this.getClass.getName}")
-    writeRaster(expectedRasterResampled, s"${validationDir}expected.${this.getClass.getName}")
-    writeRasters(diffRasters, s"${validationDir}diff.${this.getClass.getName}")
+    PolyWrite(ingestedRaster, s"${validationDir}ingested.${this.getClass.getName}")
+    PolyWrite(expectedRasterResampled, s"${validationDir}expected.${this.getClass.getName}")
+    PolyWrite(diffRasters, s"${validationDir}diff.${this.getClass.getName}")
   }
 
   def ingest(keyIndexMethod: KeyIndexMethod[K])
-            (implicit cse: Case[PolyIngest.type,
-                                String ::
-                                KeyIndexMethod[K] ::
-                                LayoutSchemeArg ::
-                                RDD[(I, V)] ::
-                                LayerWriter[LayerId] :: HNil]): Unit = ingest(layerName, keyIndexMethod)
-  def combine()(implicit cse: Case[PolyCombine.type,
-                                   LayerId ::
-                                   RDD[(K, V)] with Metadata[M] :: HNil]): Unit = combine(LayerId(layerName, zoom))
-  def validate(dt: Option[DateTime])(implicit cse: Case.Aux[PolyValidate.type,
-                                                            TileLayerMetadata[K] ::
-                                                            String ::
-                                                            LayerId ::
-                                                            Option[DateTime] ::
-                                                            ((LayerId, Option[Extent]) => RDD[(K, V)] with Metadata[M]) :: HNil,
-                                                            (Option[Raster[V]], Option[Raster[V]], List[Raster[V]])],
-                                              ocse: Case[PolyWrite.type, Option[Raster[V]] :: String :: HNil],
-                                              lcse: Case[PolyWrite.type, List[Raster[V]] :: String :: HNil]): Unit =
+            (implicit pi: Case[PolyIngest.type,
+                               String ::
+                               KeyIndexMethod[K] ::
+                               LayoutSchemeArg ::
+                               RDD[(I, V)] ::
+                               LayerWriter[LayerId] :: HNil]): Unit = ingest(layerName, keyIndexMethod)
+  def combine()(implicit pc: Case[PolyCombine.type,
+                                  LayerId ::
+                                  RDD[(K, V)] with Metadata[M] :: HNil]): Unit = combine(LayerId(layerName, zoom))
+  def validate(dt: Option[DateTime])(implicit pv: Case.Aux[PolyValidate.type,
+                                                           TileLayerMetadata[K] ::
+                                                           String ::
+                                                           LayerId ::
+                                                           Option[DateTime] ::
+                                                           ((LayerId, Option[Extent]) => RDD[(K, V)] with Metadata[M]) :: HNil,
+                                                           (Option[Raster[V]], Option[Raster[V]], List[Raster[V]])],
+                                              rw: Case[PolyWrite.type, Option[Raster[V]] :: String :: HNil],
+                                              lw: Case[PolyWrite.type, List[Raster[V]] :: String :: HNil]): Unit =
     validate(LayerId(layerName, zoom), dt)
   
-  def validate()(implicit cse: Case.Aux[PolyValidate.type,
-                                        TileLayerMetadata[K] ::
-                                        String ::
-                                        LayerId ::
-                                        Option[DateTime] ::
-                                        ((LayerId, Option[Extent]) => RDD[(K, V)] with Metadata[M]) :: HNil,
-                                        (Option[Raster[V]], Option[Raster[V]], List[Raster[V]])],
-                          ocse: Case[PolyWrite.type, Option[Raster[V]] :: String :: HNil],
-                          lcse: Case[PolyWrite.type, List[Raster[V]] :: String :: HNil]): Unit = validate(None)
-
-  def writeRaster[T <: CellGrid](raster: Option[Raster[T]], dir: String)
-                                (implicit cse: Case[PolyWrite.type, Option[Raster[T]] :: String :: HNil]): Unit =
-    PolyWrite(raster, dir)
-
-  def writeRasters[T <: CellGrid](rasters: List[Raster[T]], dir: String)
-                                 (implicit cse: Case[PolyWrite.type, List[Raster[T]] :: String :: HNil]): Unit =
-    PolyWrite(rasters, dir)
+  def validate()(implicit pv: Case.Aux[PolyValidate.type,
+                                       TileLayerMetadata[K] ::
+                                       String ::
+                                       LayerId ::
+                                       Option[DateTime] ::
+                                       ((LayerId, Option[Extent]) => RDD[(K, V)] with Metadata[M]) :: HNil,
+                                       (Option[Raster[V]], Option[Raster[V]], List[Raster[V]])],
+                          rw: Case[PolyWrite.type, Option[Raster[V]] :: String :: HNil],
+                          lw: Case[PolyWrite.type, List[Raster[V]] :: String :: HNil]): Unit = validate(None)
 }
