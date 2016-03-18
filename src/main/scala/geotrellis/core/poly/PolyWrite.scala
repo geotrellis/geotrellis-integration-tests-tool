@@ -1,4 +1,4 @@
-package geotrellis.core.functor
+package geotrellis.core.poly
 
 import geotrellis.proj4.WebMercator
 import geotrellis.raster.io.geotiff.GeoTiff

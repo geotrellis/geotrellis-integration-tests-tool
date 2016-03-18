@@ -1,4 +1,4 @@
-package geotrellis.core.functor
+package geotrellis.core.poly
 
 import geotrellis.core.LayoutSchemeArg
 import geotrellis.raster.{MultibandTile, Tile}

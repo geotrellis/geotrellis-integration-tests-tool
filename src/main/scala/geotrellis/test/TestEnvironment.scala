@@ -1,7 +1,7 @@
 package geotrellis.test
 
 import geotrellis.core.LayoutSchemeArg
-import geotrellis.core.functor.{PolyWrite, PolyValidate, PolyCombine, PolyIngest}
+import geotrellis.core.poly.{PolyWrite, PolyValidate, PolyCombine, PolyIngest}
 import geotrellis.raster._
 import geotrellis.spark.io._
 import geotrellis.spark.io.avro.AvroRecordCodec

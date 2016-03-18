@@ -1,4 +1,4 @@
-package geotrellis.core.functor
+package geotrellis.core.poly
 
 import geotrellis.core.spark._
 import geotrellis.raster.{Tile, ArrayTile, Raster}
