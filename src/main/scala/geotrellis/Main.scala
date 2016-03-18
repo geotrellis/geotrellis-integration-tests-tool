@@ -5,6 +5,7 @@ import geotrellis.spark.io._
 import geotrellis.spark.io.index.ZCurveKeyIndexMethod
 import geotrellis.test._
 import geotrellis.util.SparkSupport
+import scalaz.Scalaz._
 
 import com.typesafe.scalalogging.slf4j.LazyLogging
 
