@@ -4,7 +4,6 @@ import geotrellis.raster.Tile
 import geotrellis.spark.SpatialKey
 import geotrellis.spark.etl.hadoop.GeoTiffHadoopInput
 import geotrellis.test.TestEnvironment
-import geotrellis.test.singleband.SpatialTestEnvironment
 import geotrellis.vector.ProjectedExtent
 
 import org.apache.spark.rdd.RDD
