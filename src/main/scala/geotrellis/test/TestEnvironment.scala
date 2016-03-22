@@ -27,11 +27,12 @@ abstract class TestEnvironment[
   type M = TileLayerMetadata[K]
 
   // Poly functions cse types
-  type Ingest   = String :: KeyIndexMethod[K] :: LayoutSchemeArg :: RDD[(I, V)] :: LayerWriter[LayerId] :: HNil
-  type Validate = TileLayerMetadata[K] :: String  :: LayerId :: Option[DateTime] :: ((LayerId, Option[Extent]) => RDD[(K, V)] with Metadata[M]) :: HNil
-  type Combine  = LayerId :: RDD[(K, V)] with Metadata[M] :: HNil
-  type OWrite   = Option[Raster[V]] :: String :: HNil
-  type LWrite   = List[Raster[V]] :: String :: HNil
+  type Ingest      = String :: KeyIndexMethod[K] :: LayoutSchemeArg :: RDD[(I, V)] :: LayerWriter[LayerId] :: HNil
+  type Validate    = TileLayerMetadata[K] :: String  :: LayerId :: Option[DateTime] :: ((LayerId, Option[Extent]) => RDD[(K, V)] with Metadata[M]) :: HNil
+  type ValidateAux = (Option[Raster[V]], Option[Raster[V]], List[Raster[V]])
+  type Combine     = LayerId :: RDD[(K, V)] with Metadata[M] :: HNil
+  type OWrite      = Option[Raster[V]] :: String :: HNil
+  type LWrite      = List[Raster[V]] :: String :: HNil
 
   val layerName: String
   val zoom: Int
@@ -61,7 +62,7 @@ abstract class TestEnvironment[
   }
 
   def validate(layerId: LayerId, dt: Option[DateTime])
-              (implicit pv: Case.Aux[PolyValidate.type, Validate, (Option[Raster[V]], Option[Raster[V]], List[Raster[V]])],
+              (implicit pv: Case.Aux[PolyValidate.type, Validate, ValidateAux],
                         rw: Case[PolyWrite.type, OWrite],
                         lw: Case[PolyWrite.type, LWrite]): Unit = {
     val metadata = attributeStore.readMetadata[TileLayerMetadata[K]](layerId)
@@ -79,7 +80,7 @@ abstract class TestEnvironment[
   def combine()(implicit pc: Case[PolyCombine.type, Combine]): Unit = combine(LayerId(layerName, zoom))
 
   def validate(dt: Option[DateTime])
-              (implicit pv: Case.Aux[PolyValidate.type, Validate, (Option[Raster[V]], Option[Raster[V]], List[Raster[V]])],
+              (implicit pv: Case.Aux[PolyValidate.type, Validate, ValidateAux],
                         rw: Case[PolyWrite.type, OWrite],
                         lw: Case[PolyWrite.type, LWrite]): Unit =
     validate(LayerId(layerName, zoom), dt)
