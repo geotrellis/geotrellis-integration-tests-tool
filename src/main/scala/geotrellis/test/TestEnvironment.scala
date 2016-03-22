@@ -85,7 +85,7 @@ abstract class TestEnvironment[
                         lw: Case[PolyWrite.type, LWrite]): Unit =
     validate(LayerId(layerName, zoom), dt)
   
-  def validate()(implicit pv: Case.Aux[PolyValidate.type, Validate, (Option[Raster[V]], Option[Raster[V]], List[Raster[V]])],
+  def validate()(implicit pv: Case.Aux[PolyValidate.type, Validate, ValidateAux],
                           rw: Case[PolyWrite.type, OWrite],
                           lw: Case[PolyWrite.type, LWrite]): Unit = validate(None)
 }
