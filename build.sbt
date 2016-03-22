@@ -24,10 +24,10 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "com.azavea.geotrellis" %% "geotrellis-accumulo"  % "0.10.0-RC1",
-  "com.azavea.geotrellis" %% "geotrellis-s3"        % "0.10.0-RC1",
-  "com.azavea.geotrellis" %% "geotrellis-spark"     % "0.10.0-RC1",
-  "com.azavea.geotrellis" %% "geotrellis-spark-etl" % "0.10.0-RC1",
+  "com.azavea.geotrellis" %% "geotrellis-accumulo"  % "0.10.0-RC2",
+  "com.azavea.geotrellis" %% "geotrellis-s3"        % "0.10.0-RC2",
+  "com.azavea.geotrellis" %% "geotrellis-spark"     % "0.10.0-RC2",
+  "com.azavea.geotrellis" %% "geotrellis-spark-etl" % "0.10.0-RC2",
   "com.chuusai"           %% "shapeless"            % "2.3.0",
   "com.typesafe"           % "config"               % "1.3.0",
   "org.apache.spark"      %% "spark-core"           % "1.5.2" % "provided",
