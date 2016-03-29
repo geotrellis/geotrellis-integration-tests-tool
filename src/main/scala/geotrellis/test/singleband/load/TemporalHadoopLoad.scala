@@ -15,11 +15,9 @@ trait TemporalHadoopLoad { self: TestEnvironment[TemporalProjectedExtent, SpaceT
     saveS3Keys { (path, arr) => writeToHdfs(s"${hadoopLoadPath}${path.split("/").last}", arr) }
 
   def loadTiles: RDD[(TemporalProjectedExtent, Tile)] = {
-    /*logger.info("loading tiles from s3 to hdfs...")
-    clearLoadPath
-    saveToHdfsByteArray*/
+
     logger.info("loading tiles from hdfs...")
     val hadoopInput = new TemporalGeoTiffHadoopInput()
-    hadoopInput(hadoopParams)
+    hadoopInput(Map("path" -> hadoopLoadPath))
   }
 }

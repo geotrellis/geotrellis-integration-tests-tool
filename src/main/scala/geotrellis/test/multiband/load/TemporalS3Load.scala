@@ -14,6 +14,6 @@ trait TemporalS3Load { self: TestEnvironment[TemporalProjectedExtent, SpaceTimeK
   def loadTiles: RDD[(TemporalProjectedExtent, MultibandTile)] = {
     logger.info("loading tiles from s3...")
     val s3Input = new TemporalMultibandGeoTiffS3Input()
-    s3Input(s3Params)
+    s3Input(Map("bucket" -> s3LoadBucket, "key" -> s3LoadPrefix))
   }
 }

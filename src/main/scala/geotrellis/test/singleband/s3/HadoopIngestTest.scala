@@ -8,11 +8,12 @@ import geotrellis.test.singleband.load.HadoopLoad
 import geotrellis.vector.ProjectedExtent
 
 import org.apache.spark.SparkContext
+import com.typesafe.config.{Config => TConfig}
 
-abstract class HadoopIngestTest extends S3Test[ProjectedExtent, SpatialKey, Tile] with HadoopLoad
+abstract class HadoopIngestTest(implicit configuration: TConfig) extends S3Test[ProjectedExtent, SpatialKey, Tile](configuration) with HadoopLoad
 
 object HadoopIngestTest {
-  def apply(implicit _sc: SparkContext) = new HadoopIngestTest {
+  def apply(implicit configuration: TConfig, _sc: SparkContext) = new HadoopIngestTest {
     @transient implicit val sc = _sc
   }
 }

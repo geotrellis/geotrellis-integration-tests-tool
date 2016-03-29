@@ -16,11 +16,8 @@ trait HadoopLoad { self: TestEnvironment[ProjectedExtent, SpatialKey, MultibandT
     saveS3Keys { (path, arr) => writeToHdfs(s"${hadoopLoadPath}${path.split("/").last}", arr) }
 
   def loadTiles: RDD[(ProjectedExtent, MultibandTile)] = {
-    logger.info("loading tiles from s3 to hdfs...")
-    clearLoadPath
-    saveToHdfsByteArray
     logger.info("loading tiles from hdfs...")
     val hadoopInput = new MultibandGeoTiffHadoopInput()
-    hadoopInput(hadoopParams)
+    hadoopInput(Map("path" -> hadoopLoadPath))
   }
 }

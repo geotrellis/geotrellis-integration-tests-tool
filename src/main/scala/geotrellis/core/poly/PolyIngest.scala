@@ -28,6 +28,7 @@ object PolyIngest extends Poly5 {
       Ingest[I, K](loadTiles, lsa.crs, lsa.layoutScheme, pyramid = true) { case (rdd, z) =>
         if (z == 8) {
           if (rdd.filter(!_._2.isNoDataTile).count != 64) {
+            logger.info(s"rdd.filter(!_._2.isNoDataTile).count: ${rdd.filter(!_._2.isNoDataTile).count}")
             logger.error(s"Incorrect ingest ${layer}")
             throw new Exception(s"Incorrect ingest ${layer}")
           }
@@ -44,6 +45,7 @@ object PolyIngest extends Poly5 {
       MultibandIngest[I, K](loadTiles, lsa.crs, lsa.layoutScheme, pyramid = true) { case (rdd, z) =>
         if (z == 8) {
           if (rdd.filter(!_._2.band(0).isNoDataTile).count != 64) {
+            logger.info(s"rdd.filter(!_._2.band(0).isNoDataTile).count != 64: ${rdd.filter(!_._2.band(0).isNoDataTile).count != 64}")
             logger.error(s"Incorrect ingest ${layer}")
             throw new Exception(s"Incorrect ingest ${layer}")
           }
