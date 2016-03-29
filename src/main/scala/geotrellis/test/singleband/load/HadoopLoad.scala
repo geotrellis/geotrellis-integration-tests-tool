@@ -16,9 +16,9 @@ trait HadoopLoad { self: TestEnvironment[ProjectedExtent, SpatialKey, Tile] =>
     saveS3Keys { (path, arr) => writeToHdfs(s"${hadoopLoadPath}${path.split("/").last}", arr) }
 
   def loadTiles: RDD[(ProjectedExtent, Tile)] = {
-    logger.info("loading tiles from s3 to hdfs...")
+    /*logger.info("loading tiles from s3 to hdfs...")
     clearLoadPath
-    saveToHdfsByteArray
+    saveToHdfsByteArray*/
     logger.info("loading tiles from hdfs...")
     val hadoopInput = new GeoTiffHadoopInput()
     hadoopInput(hadoopParams)
