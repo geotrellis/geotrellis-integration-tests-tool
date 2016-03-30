@@ -11,13 +11,9 @@ trait TemporalHadoopLoad { self: TestEnvironment[TemporalProjectedExtent, SpaceT
   val layerName: String = "hadoopIngest"
   val zoom: Int = 8
 
-  def saveToHdfsByteArray =
-    saveS3Keys { (path, arr) => writeToHdfs(s"${hadoopLoadPath}${path.split("/").last}", arr) }
-
   def loadTiles: RDD[(TemporalProjectedExtent, Tile)] = {
-
     logger.info("loading tiles from hdfs...")
     val hadoopInput = new TemporalGeoTiffHadoopInput()
-    hadoopInput(Map("path" -> hadoopLoadPath))
+    hadoopInput(loadParams)
   }
 }

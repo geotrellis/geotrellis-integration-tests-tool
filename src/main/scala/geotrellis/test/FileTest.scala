@@ -1,12 +1,11 @@
 package geotrellis.test
 
 import geotrellis.config._
-import geotrellis.raster.{CellGrid, Tile}
+import geotrellis.raster.CellGrid
 import geotrellis.spark._
 import geotrellis.spark.io.avro.AvroRecordCodec
 import geotrellis.spark.io.file.{FileAttributeStore, FileLayerReader, FileLayerWriter}
 import geotrellis.spark.tiling.TilerKeyMethods
-import geotrellis.util.FileSupport
 import geotrellis.vector.ProjectedExtent
 
 import spray.json.JsonFormat

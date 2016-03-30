@@ -6,7 +6,6 @@ import geotrellis.spark._
 import geotrellis.spark.io.avro.AvroRecordCodec
 import geotrellis.spark.io.hadoop._
 import geotrellis.spark.tiling.TilerKeyMethods
-import geotrellis.util.FileSupport
 import geotrellis.vector.ProjectedExtent
 
 import org.apache.hadoop.fs.Path

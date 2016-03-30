@@ -8,16 +8,41 @@ import geotrellis.util.SparkSupport
 
 import scalaz.Scalaz._
 import com.typesafe.scalalogging.slf4j.LazyLogging
-import geotrellis.config.Config
+import geotrellis.config._
 import geotrellis.raster.Tile
 import geotrellis.test.singleband.hadoop
 import geotrellis.vector.ProjectedExtent
 
 object Main extends LazyLogging {
   def main(args: Array[String]): Unit = {
-    implicit val sc = SparkSupport.sparkContext
+    implicit val sc = SparkSupport.sparkContext(Config.timeTag, Config.timeFormat)
+    val dataSetsMap = Config.dataSets.groupBy(c => SType.fromString(c.getString("ingestType")))
 
-    val (sl, tl) = Config.dataSets.partition(c => c.getString("ingestType") == "spatial")
+    dataSetsMap.get(Spatial) foreach { _.foreach { implicit cfg =>
+      SType.fromString("loadType") match {
+        case S3     => s3Tests foreach { get =>
+          val test = get()
+          test.ingest(ZCurveKeyIndexMethod)
+          test.combine()
+          test.validate()
+        }
+        case Hadoop => hadoopTests foreach { get =>
+          val test = get()
+          test.ingest(ZCurveKeyIndexMethod)
+          test.combine()
+          test.validate()
+        }
+      }
+    } }
+
+    dataSetsMap.get(Temporal) foreach { _.foreach { implicit cfg =>
+      SType.fromString("loadType") match {
+        case S3     => s3TestsTemporal
+        case Hadoop => hadoopTestsTemporal
+      }
+    } }
+
+
 
     /*val tests = List(() => hadoop.TemporalHadoopIngestTest.apply)
 
@@ -28,14 +53,14 @@ object Main extends LazyLogging {
       test.validate()
     }*/
 
-    sl foreach { implicit cfg =>
+    /*sl foreach { implicit cfg =>
       tests foreach { get =>
         val test = get()
         test.ingest(ZCurveKeyIndexMethod)
         test.combine()
         test.validate()
       }
-    }
+    }*/
 
     logger.info("completed")
     sc.stop()

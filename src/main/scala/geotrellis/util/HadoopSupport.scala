@@ -5,8 +5,10 @@ import geotrellis.spark.io.hadoop.HdfsUtils
 import org.apache.hadoop.fs.{FileSystem, Path}
 
 trait HadoopSupport extends HadoopConfig { self: SparkSupport =>
-  val hadoopIngestPath: String
-  val hadoopLoadPath: String
+  val loadParams: Map[String, String]
+  val ingestParams: Map[String, String]
+
+  lazy val (hadoopLoadPath, hadoopIngestPath) = loadParams("path") -> ingestParams("path")
 
   def writeToHdfs(filePath: String, data: Array[Byte]): Unit = {
     val path = new Path(filePath)

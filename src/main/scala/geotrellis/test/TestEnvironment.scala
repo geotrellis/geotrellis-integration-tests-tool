@@ -25,7 +25,7 @@ abstract class TestEnvironment[
   I: ClassTag: ? => TilerKeyMethods[I, K]: Component[?, ProjectedExtent],
   K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag,
   V <: CellGrid: AvroRecordCodec: ClassTag
-](configuration: TConfig) extends SparkSupport with HadoopSupport with S3Support with Serializable {
+](configuration: TConfig) extends SparkSupport with HadoopSupport with Serializable { // HadoopSupport mixin is deprecated
   type M = TileLayerMetadata[K]
 
   // Poly functions cse types
@@ -45,9 +45,8 @@ abstract class TestEnvironment[
 
   def loadTiles: RDD[(I, V)]
 
-  lazy val (s3IngestBucket, s3IngestPrefix)   = getS3Params(either("ingestPath", "geotrellis-test/gt-integration-test")(configuration))
-  lazy val (s3LoadBucket, s3LoadPrefix)       = getS3Params(either("loadPath", "geotrellis-test/nex-geotiff")(configuration))
-  lazy val (hadoopIngestPath, hadoopLoadPath) = either("ingestPath", "/geotrellis-integration/")(configuration) -> either("loadPath", "/geotrellis-integration-load/")(configuration)
+  val loadParams: Map[String, String] = getInputParams(either("loadPath", "")(configuration))
+  val ingestParams: Map[String, String] = getInputParams(either("ingestPath", "")(configuration))
 
   def read(layerId: LayerId, extent: Option[Extent] = None): RDD[(K, V)] with Metadata[M] = {
     logger.info(s"reading ${layerId}...")

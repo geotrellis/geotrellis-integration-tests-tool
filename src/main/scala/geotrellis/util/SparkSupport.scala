@@ -14,18 +14,17 @@ trait SparkSupport {
 }
 
 object SparkSupport {
-  def sparkContext = {
+  def sparkContext(timeTag: String = "ISO_TIME", timeFormat: String = "yyyy-MM-dd'T'HH:mm:ss") = {
     val context = new SparkContext(
       new SparkConf()
-      .setAppName("AccumuloS3Ingest")
+      .setAppName("GeoTrellis Integration Tests")
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .set("spark.kryo.registrator", "geotrellis.spark.io.kryo.KryoRegistrator")
       .setJars(SparkContext.jarOfObject(this).toList)
     )
 
-    // probably get that to configuration stuff
-    TemporalGeoTiffInputFormat.setTimeTag(context.hadoopConfiguration, "ISO_TIME")
-    TemporalGeoTiffInputFormat.setTimeFormat(context.hadoopConfiguration, "yyyy-MM-dd'T'HH:mm:ss")
+    TemporalGeoTiffInputFormat.setTimeTag(context.hadoopConfiguration, timeTag)
+    TemporalGeoTiffInputFormat.setTimeFormat(context.hadoopConfiguration, timeFormat)
 
     context
   }
