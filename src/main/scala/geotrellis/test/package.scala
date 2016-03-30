@@ -20,9 +20,9 @@ package object test {
     else Map("path" -> path) // file / accumulo cases
   }
 
-  def s3Tests(implicit configuration: TConfig, sc: SparkContext) = singleband.s3Tests ++ multiband.s3Tests
-  def hadoopTests(implicit configuration: TConfig, sc: SparkContext) = singleband.hadoopTests ++ multiband.hadoopTests
+  def s3Tests(implicit configuration: TConfig, sc: SparkContext) = singleband.s3Tests //++ multiband.s3Tests
+  def hadoopTests(implicit configuration: TConfig, sc: SparkContext) = singleband.hadoopTests //++ multiband.hadoopTests
 
-  def s3TestsTemporal(implicit configuration: TConfig, sc: SparkContext) = singleband.s3TestsTemporal ++ multiband.s3TestsTemporal
-  def hadoopTestsTemporal(implicit configuration: TConfig, sc: SparkContext) = singleband.hadoopTestsTemporal ++ multiband.hadoopTestsTemporal
+  def s3TestsTemporal(implicit configuration: TConfig, sc: SparkContext) = singleband.s3TestsTemporal //++ multiband.s3TestsTemporal
+  def hadoopTestsTemporal(implicit configuration: TConfig, sc: SparkContext) = singleband.hadoopTestsTemporal //++ multiband.hadoopTestsTemporal
 }

@@ -4,6 +4,9 @@ import org.apache.spark.SparkContext
 import com.typesafe.config.{Config => TConfig}
 
 package object multiband {
+  def tests(implicit configuration: TConfig, sc: SparkContext) = s3Tests ++ hadoopTests
+  def testsTemporal(implicit configuration: TConfig, sc: SparkContext) = s3TestsTemporal ++ hadoopTestsTemporal
+
   def s3Tests(implicit configuration: TConfig, sc: SparkContext) =
     List(
       () => accumulo.S3IngestTest.apply,
