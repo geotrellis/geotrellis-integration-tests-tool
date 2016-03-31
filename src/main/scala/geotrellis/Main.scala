@@ -16,8 +16,7 @@ object Main extends LazyLogging {
     val (ss, sm, ts, tm) = Config.splitedDataSets
 
     ss foreach { implicit cfg =>
-      singleband.tests foreach { case (key, get) =>
-        logger.info(s"key: ${key}")
+      singleband.tests foreach { case (_, get) =>
         val test = get()
         test.ingest
         test.combine
@@ -26,8 +25,7 @@ object Main extends LazyLogging {
     }
 
     sm foreach { implicit cfg =>
-      multiband.tests foreach { case (key, get) =>
-        logger.info(s"key: ${key}")
+      multiband.tests foreach { case (_, get) =>
         val test = get()
         test.ingest
         test.combine
@@ -36,8 +34,7 @@ object Main extends LazyLogging {
     }
 
     ts foreach { implicit cfg =>
-      singleband.testsTemporal foreach { case (key, get) =>
-        logger.info(s"key: ${key}")
+      singleband.testsTemporal foreach { case (_, get) =>
         val test = get()
         test.ingest
         test.combine
@@ -46,8 +43,7 @@ object Main extends LazyLogging {
     }
 
     tm foreach { implicit cfg =>
-      multiband.testsTemporal foreach { case (key, get) =>
-        logger.info(s"key: ${key}")
+      multiband.testsTemporal foreach { case (_, get) =>
         val test = get()
         test.ingest
         test.combine
