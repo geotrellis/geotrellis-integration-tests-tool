@@ -45,42 +45,6 @@ abstract class TestEnvironment[
 
   def loadTiles: RDD[(I, V)]
 
-  def validate(input: RDD[(I, V)], ingested: RDD[(K, V)] with Metadata[M]): Int = {
-    val threshold = 0.01 // This could be different for each dataset
-
-    val md = ingested.metadata
-    val fullExtent = md.extent
-    val validationExtent = someRandomExtentWithin(fullExtent) // how to choose one that's not small/big?
-    val ingestedTiles = ingested.asRasters.filter(_._2.extent.intersects(validationExtent)).collect
-    val inputTiles =
-      input
-        .map { case (key, value) => (key.extent.reproject(key.crs, md.crs), (key, value)) }
-        .filter(_._1.intersects(validationExtent))
-        .collect
-
-    for((_, ingestedRaster) <- ingestedTiles) {
-      for((_, (ProjectedExtent(extent, crs), tile)) <- inputTiles.filter { case (reprojectedExtent, (projectedExtent, tile)) => reprojectedExtent.intersects(ingestedRaster.extent) }) {
-        val transform = Transform(md.crs, crs)
-        val inputRasterExtent = RasterExtent(extent, tile.cols, tile.rows)
-        cfor(0)(_ < ingestedRaster.tile.cols, _ + 1) { col =>
-          cfor(0)(_ < ingestedRaster.tile.rows, _ + 1) { row =>
-            val (x, y) = ingestedRaster.rasterExtent.gridToMap(col, row)
-            val (rx, ry) = transform(x, y)
-            val (icol, irow) = inputRasterExtent.mapToGrid(rx, ry)
-
-            val v1 = ingestedRaster.getDouble(col, row)
-            val v2 = tile.getDouble(icol, irow)
-
-            assert(v1 - v2 < threshold, "Oops")
-          }
-        }
-      }
-
-    }
-
-    ingested.asRasters.filter(_._2.extent.intersects)
-  }
-
   val loadParams: Map[String, String]   = dataSet.getLoadParams
   val ingestParams: Map[String, String] = dataSet.getIngestParams
 
