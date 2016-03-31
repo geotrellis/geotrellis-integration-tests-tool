@@ -5,7 +5,7 @@ import geotrellis.spark._
 import geotrellis.spark.io.accumulo.{AccumuloAttributeStore, AccumuloLayerReader, AccumuloLayerWriter}
 import geotrellis.spark.io.avro.AvroRecordCodec
 import geotrellis.spark.tiling.TilerKeyMethods
-import geotrellis.util.AccumuloSupport
+import geotrellis.util.{Component, AccumuloSupport}
 import geotrellis.vector.ProjectedExtent
 import geotrellis.config._
 

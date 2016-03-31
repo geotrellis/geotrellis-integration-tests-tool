@@ -7,10 +7,10 @@ import geotrellis.spark.io.avro.AvroRecordCodec
 import geotrellis.spark.io.hadoop._
 import geotrellis.spark.tiling.TilerKeyMethods
 import geotrellis.vector.ProjectedExtent
+import geotrellis.util.Component
 
 import org.apache.hadoop.fs.Path
 import spray.json.JsonFormat
-import com.typesafe.config.{Config => TConfig}
 
 import scala.reflect.ClassTag
 

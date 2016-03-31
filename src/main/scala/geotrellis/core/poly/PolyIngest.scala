@@ -9,6 +9,7 @@ import geotrellis.spark.io.avro.AvroRecordCodec
 import geotrellis.spark.io.index.KeyIndexMethod
 import geotrellis.spark.tiling.TilerKeyMethods
 import geotrellis.vector.ProjectedExtent
+import geotrellis.util.Component
 
 import org.apache.spark.rdd.RDD
 import org.slf4j.{LoggerFactory, Logger}

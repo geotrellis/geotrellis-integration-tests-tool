@@ -1,18 +1,16 @@
 package geotrellis.test
 
 import geotrellis.core.LayoutSchemeArg
-import geotrellis.core.poly.{PolyWrite, PolyValidate, PolyCombine, PolyIngest}
+import geotrellis.core.poly.{PolyCombine, PolyIngest, PolyValidate, PolyWrite}
 import geotrellis.raster._
 import geotrellis.spark.io._
 import geotrellis.spark.io.avro.AvroRecordCodec
 import geotrellis.spark.io.index.KeyIndexMethod
 import geotrellis.spark.tiling.TilerKeyMethods
 import geotrellis.spark._
-import geotrellis.util.{S3Support, HadoopSupport, SparkSupport}
-import geotrellis.vector.{ProjectedExtent, Extent}
+import geotrellis.util.{Component, HadoopSupport, SparkSupport}
+import geotrellis.vector.{Extent, ProjectedExtent}
 import geotrellis.config._
-
-import com.typesafe.config.{Config => TConfig}
 import org.apache.spark.rdd.RDD
 import org.joda.time.DateTime
 import spray.json.JsonFormat

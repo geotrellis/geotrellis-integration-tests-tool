@@ -7,7 +7,7 @@ import geotrellis.spark.io.s3._
 import geotrellis.spark.tiling.TilerKeyMethods
 import geotrellis.vector.ProjectedExtent
 import geotrellis.config.DataSet
-import geotrellis.util.S3Support
+import geotrellis.util.{Component, S3Support}
 
 import spray.json.JsonFormat
 

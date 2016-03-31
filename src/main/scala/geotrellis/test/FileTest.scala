@@ -7,9 +7,9 @@ import geotrellis.spark.io.avro.AvroRecordCodec
 import geotrellis.spark.io.file.{FileAttributeStore, FileLayerReader, FileLayerWriter}
 import geotrellis.spark.tiling.TilerKeyMethods
 import geotrellis.vector.ProjectedExtent
+import geotrellis.util.Component
 
 import spray.json.JsonFormat
-import com.typesafe.config.{Config => TConfig}
 
 import scala.reflect.ClassTag
 
