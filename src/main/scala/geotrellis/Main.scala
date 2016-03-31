@@ -13,7 +13,7 @@ object Main extends LazyLogging {
 
   def main(args: Array[String]): Unit = {
     implicit val sc = SparkSupport.sparkContext(Config.timeTag, Config.timeFormat)
-    val (ss, sm, ts, tm) = Config.splitedDataSets
+    val (ss, sm, ts, tm) = Config.splitDataSets
 
     ss foreach { implicit cfg =>
       singleband.tests foreach { case (_, get) =>

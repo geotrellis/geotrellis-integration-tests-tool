@@ -28,7 +28,7 @@ abstract class TestEnvironment[
 
   // Poly functions cse types
   type Ingest      = String :: KeyIndexMethod[K] :: LayoutSchemeArg :: RDD[(I, V)] :: LayerWriter[LayerId] :: HNil
-  type Validate    = TileLayerMetadata[K] :: String  :: LayerId :: Option[DateTime] :: ((LayerId, Option[Extent]) => RDD[(K, V)] with Metadata[M]) :: HNil
+  type Validate    = DataSet :: TileLayerMetadata[K] :: String  :: LayerId :: Option[DateTime] :: ((LayerId, Option[Extent]) => RDD[(K, V)] with Metadata[M]) :: HNil
   type ValidateAux = (Option[Raster[V]], Option[Raster[V]], List[Raster[V]])
   type Combine     = LayerId :: RDD[(K, V)] with Metadata[M] :: HNil
   type OWrite      = Option[Raster[V]] :: String :: HNil
@@ -69,12 +69,12 @@ abstract class TestEnvironment[
                         rw: Case[PolyWrite.type, OWrite],
                         lw: Case[PolyWrite.type, LWrite]): Unit = {
     val metadata = attributeStore.readMetadata[TileLayerMetadata[K]](layerId)
-    val (ingestedRaster, expectedRasterResampled, diffRasters) =
-      PolyValidate(metadata, mvValidationTiffLocal, layerId, dt, read _)
+    val (ingestedRasterSubset, expectedRaster, rasterDiff) =
+      PolyValidate(dataSet, metadata, mvValidationTiffLocal, layerId, dt, read _)
 
-    PolyWrite(ingestedRaster, s"${validationDir}ingested.${this.getClass.getName}")
-    PolyWrite(expectedRasterResampled, s"${validationDir}expected.${this.getClass.getName}")
-    PolyWrite(diffRasters, s"${validationDir}diff.${this.getClass.getName}")
+    PolyWrite(ingestedRasterSubset, s"${validationDir}ingested.${this.getClass.getName}")
+    PolyWrite(expectedRaster, s"${validationDir}expected.${this.getClass.getName}")
+    PolyWrite(rasterDiff, s"${validationDir}diff.${this.getClass.getName}")
   }
 
   def ingest(implicit pi: Case[PolyIngest.type, Ingest]): Unit =
@@ -87,7 +87,7 @@ abstract class TestEnvironment[
                         rw: Case[PolyWrite.type, OWrite],
                         lw: Case[PolyWrite.type, LWrite]): Unit =
     validate(LayerId(layerName, zoom), dt)
-  
+
   def validate(implicit pv: Case.Aux[PolyValidate.type, Validate, ValidateAux],
                           rw: Case[PolyWrite.type, OWrite],
                           lw: Case[PolyWrite.type, LWrite]): Unit = validate(None)

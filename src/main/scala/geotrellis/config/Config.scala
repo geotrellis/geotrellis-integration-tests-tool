@@ -7,7 +7,7 @@ trait Config {
   @transient lazy val cfg = ConfigFactory.load()
 
   lazy val dataSets                = eitherConfigList("datasets")(cfg)
-  lazy val splitedDataSets         = splitConfig(dataSets)
+  lazy val splitDataSets           = splitConfig(dataSets)
   lazy val validationTiff          = either("validation.tiff", "")(cfg)
   lazy val validationDir           = either("validation.dir", "/tmp/")(cfg)
   lazy val validationTiffPathLocal = validationDir + validationTiff
