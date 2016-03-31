@@ -2,7 +2,6 @@ package geotrellis
 
 import geotrellis.spark._
 import geotrellis.spark.io._
-import geotrellis.spark.io.index.ZCurveKeyIndexMethod
 import geotrellis.test._
 import geotrellis.util.SparkSupport
 
@@ -17,38 +16,38 @@ object Main extends LazyLogging {
     val (ss, sm, ts, tm) = Config.splitedDataSets
 
     ss foreach { implicit cfg =>
-      singleband.tests foreach { get =>
+      singleband.tests foreach { case (_, get) =>
         val test = get()
-        test.ingest(ZCurveKeyIndexMethod)
-        test.combine()
-        test.validate()
+        test.ingest
+        test.combine
+        test.validate
       }
     }
 
     sm foreach { implicit cfg =>
-      multiband.tests foreach { get =>
+      multiband.tests foreach { case (_, get) =>
         val test = get()
-        test.ingest(ZCurveKeyIndexMethod)
-        test.combine()
-        test.validate()
+        test.ingest
+        test.combine
+        test.validate
       }
     }
 
     ts foreach { implicit cfg =>
-      singleband.testsTemporal foreach { get =>
+      singleband.testsTemporal foreach { case (_, get) =>
         val test = get()
-        test.ingest(ZCurveKeyIndexMethod.byYear)
-        test.combine()
-        test.validate()
+        test.ingest
+        test.combine
+        test.validate
       }
     }
 
     tm foreach { implicit cfg =>
-      multiband.testsTemporal foreach { get =>
+      multiband.testsTemporal foreach { case (_, get) =>
         val test = get()
-        test.ingest(ZCurveKeyIndexMethod.byYear)
-        test.combine()
-        test.validate()
+        test.ingest
+        test.combine
+        test.validate
       }
     }
 

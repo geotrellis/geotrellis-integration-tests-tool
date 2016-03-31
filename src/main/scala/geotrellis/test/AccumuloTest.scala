@@ -10,7 +10,6 @@ import geotrellis.vector.ProjectedExtent
 import geotrellis.config._
 
 import spray.json.JsonFormat
-import com.typesafe.config.{Config => TConfig}
 
 import scala.reflect.ClassTag
 
@@ -18,8 +17,8 @@ abstract class AccumuloTest[
   I: ClassTag: ? => TilerKeyMethods[I, K]: Component[?, ProjectedExtent],
   K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag,
   V <: CellGrid: AvroRecordCodec: ClassTag
-](configuration: TConfig) extends TestEnvironment[I, K, V](configuration) with AccumuloSupport {
-  lazy val table = either("ingestPath", "gtintegration")(configuration)
+](dataSet: DataSet) extends TestEnvironment[I, K, V](dataSet) with AccumuloSupport {
+  val table = hadoopIngestPath // just a val name %)
   @transient lazy val writer = AccumuloLayerWriter(instance, table)
   @transient lazy val reader = AccumuloLayerReader(instance)
   @transient lazy val attributeStore = AccumuloAttributeStore(instance.connector)

@@ -40,4 +40,3 @@ object Config extends S3Config with AccumuloConfig with HadoopConfig with FileCo
      cfgs.filter(temporalSingleband),
      cfgs.filter(temporalMultiband))
 }
-

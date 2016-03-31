@@ -18,7 +18,7 @@ abstract class HadoopTest[
   I: ClassTag: ? => TilerKeyMethods[I, K]: Component[?, ProjectedExtent],
   K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag,
   V <: CellGrid: AvroRecordCodec: ClassTag
-](configuration: TConfig) extends TestEnvironment[I, K, V](configuration) {
+](dataSet: DataSet) extends TestEnvironment[I, K, V](dataSet) {
   @transient lazy val writer = HadoopLayerWriter(new Path(hadoopIngestPath))
   @transient lazy val reader = HadoopLayerReader(new Path(hadoopIngestPath))
   @transient lazy val attributeStore = HadoopAttributeStore(hadoopIngestPath)

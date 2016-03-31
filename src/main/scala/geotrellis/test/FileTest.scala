@@ -17,9 +17,8 @@ abstract class FileTest[
   I: ClassTag: ? => TilerKeyMethods[I, K]: Component[?, ProjectedExtent],
   K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag,
   V <: CellGrid: AvroRecordCodec: ClassTag
-](configuration: TConfig) extends TestEnvironment[I, K, V](configuration) {
-  lazy val fileIngestPath = either("ingestPath", "/geotrellis-integration/")(configuration)
-  @transient lazy val writer = FileLayerWriter(fileIngestPath)
-  @transient lazy val reader = FileLayerReader(fileIngestPath)
-  @transient lazy val attributeStore = FileAttributeStore(fileIngestPath)
+](dataSet: DataSet) extends TestEnvironment[I, K, V](dataSet) {
+  @transient lazy val writer = FileLayerWriter(hadoopIngestPath)
+  @transient lazy val reader = FileLayerReader(hadoopIngestPath)
+  @transient lazy val attributeStore = FileAttributeStore(hadoopIngestPath)
 }
