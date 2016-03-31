@@ -20,7 +20,8 @@ case class DataSet(name: String,
                    tileSize: Int,
                    layoutScheme: LayoutScheme,
                    keyIndexMethod: KeyIndexMethod[_],
-                   validationExtentSize: Double) {
+                   validationExtentSize: Double,
+                   resolutionThreshold: Double) {
   def getInputParams(path: String): Map[String, String] = {
     // s3 case
     if(path.contains("s3n://")) {
@@ -93,7 +94,8 @@ object DataSet {
       tileSize             = tileSize,
       layoutScheme         = layoutScheme,
       keyIndexMethod       = keyIndexMethodFromString(either("keyIndexMethod.type")(cfg), optionLong("keyIndexMethod.temporalResolution")(cfg)),
-      validationExtentSize = eitherDouble("validationExtentSize")(cfg)
+      validationExtentSize = eitherDouble("validationExtentSize")(cfg),
+      resolutionThreshold  = resolutionThreshold
     )
   }
 }

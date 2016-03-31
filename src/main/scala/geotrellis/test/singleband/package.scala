@@ -8,6 +8,7 @@ import com.typesafe.config.{Config => TConfig}
 package object singleband {
   def tests(implicit configuration: TConfig, sc: SparkContext) =
     (s3Tests ++ hadoopTests) filter (_ => (configuration: DataSet).nonTemporal)
+
   def testsTemporal(implicit configuration: TConfig, sc: SparkContext) =
     (s3TestsTemporal ++ hadoopTestsTemporal) filter (_ => (configuration: DataSet).isTemporal)
 
