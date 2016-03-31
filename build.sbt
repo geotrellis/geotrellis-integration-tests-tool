@@ -23,7 +23,8 @@ resolvers ++= Seq(
   Resolver.sonatypeRepo("releases")
 )
 
-val gtVersion = "0.10.0-RC3"
+val gtVersion    = "0.10.0-RC3"
+val circeVersion = "0.3.0"
 
 val geotrellis = Seq(
   "com.azavea.geotrellis" %% "geotrellis-accumulo"  % gtVersion,
@@ -32,13 +33,19 @@ val geotrellis = Seq(
   "com.azavea.geotrellis" %% "geotrellis-spark-etl" % gtVersion
 )
 
+val circe = Seq(
+  "io.circe" %% "circe-core"    % circeVersion,
+  "io.circe" %% "circe-generic" % circeVersion,
+  "io.circe" %% "circe-parser"  % circeVersion
+)
+
 libraryDependencies ++= Seq(
-  "com.chuusai"       %% "shapeless"     % "2.3.0",
-  "com.typesafe"       % "config"        % "1.3.0",
-  "org.apache.spark"  %% "spark-core"    % "1.5.2" % "provided",
-  "org.apache.hadoop"  % "hadoop-client" % "2.7.1" % "provided",
-  "org.scalatest"     %% "scalatest"     % "2.2.0" % "test"
-) ++ geotrellis
+  "com.chuusai"           %% "shapeless"            % "2.3.0",
+  "com.typesafe"           % "config"               % "1.3.0",
+  "org.apache.spark"      %% "spark-core"           % "1.5.2" % "provided",
+  "org.apache.hadoop"      % "hadoop-client"        % "2.7.1" % "provided",
+  "org.scalatest"         %% "scalatest"            % "2.2.0" % "test"
+) ++ geotrellis ++ circe
 
 addCompilerPlugin("org.spire-math" % "kind-projector" % "0.7.1" cross CrossVersion.binary)
 
