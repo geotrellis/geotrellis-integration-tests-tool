@@ -4,8 +4,9 @@ import geotrellis.raster.{MultibandTile, Tile}
 import geotrellis.spark._
 import geotrellis.spark.io.avro.AvroRecordCodec
 
+import org.apache.spark.rdd.RDD
 import org.slf4j.{Logger, LoggerFactory}
-import shapeless.Poly2
+import shapeless.{::, HNil, Poly2}
 import spray.json.JsonFormat
 
 import scala.reflect.ClassTag
@@ -13,6 +14,8 @@ import scala.util.Random
 
 object PolyCombine extends Poly2 {
   @transient lazy val logger: Logger = LoggerFactory.getLogger(this.getClass)
+
+  type In[K, V, M] = LayerId :: RDD[(K, V)] with Metadata[M] :: HNil
 
   implicit def singleband[K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag] =
     at[LayerId, TileLayerRDD[K]] { case (layerId, rdd) =>

@@ -11,10 +11,10 @@ import geotrellis.spark._
 import geotrellis.util.{Component, HadoopSupport, SparkSupport}
 import geotrellis.vector.{Extent, ProjectedExtent}
 import geotrellis.config._
+
 import org.apache.spark.rdd.RDD
 import org.joda.time.DateTime
 import spray.json.JsonFormat
-import shapeless._
 import shapeless.poly._
 
 import scala.reflect.ClassTag
@@ -25,14 +25,6 @@ abstract class TestEnvironment[
   V <: CellGrid: AvroRecordCodec: ClassTag
 ](val dataSet: DataSet) extends SparkSupport with HadoopSupport with Serializable { // HadoopSupport mixin is deprecated
   type M = TileLayerMetadata[K]
-
-  // Poly functions cse types
-  type Ingest      = String :: KeyIndexMethod[K] :: LayoutSchemeArg :: RDD[(I, V)] :: LayerWriter[LayerId] :: HNil
-  type Validate    = TileLayerMetadata[K] :: String  :: LayerId :: Option[DateTime] :: ((LayerId, Option[Extent]) => RDD[(K, V)] with Metadata[M]) :: HNil
-  type ValidateAux = (Option[Raster[V]], Option[Raster[V]], List[Raster[V]])
-  type Combine     = LayerId :: RDD[(K, V)] with Metadata[M] :: HNil
-  type OWrite      = Option[Raster[V]] :: String :: HNil
-  type LWrite      = List[Raster[V]] :: String :: HNil
 
   val layerName: String
   val zoom: Int
@@ -52,22 +44,22 @@ abstract class TestEnvironment[
   }
 
   def ingest(layer: String, keyIndexMethod: KeyIndexMethod[K], lsa: LayoutSchemeArg)
-            (implicit pi: Case[PolyIngest.type, Ingest]): Unit = {
+            (implicit pi: Case[PolyIngest.type, PolyIngest.In[K, I, V]]): Unit = {
     conf.set("io.map.index.interval", "1")
     logger.info(s"ingesting tiles into accumulo (${layer})...")
     PolyIngest(layer, keyIndexMethod, lsa, loadTiles, writer)
   }
 
-  def combine(layerId: LayerId)(implicit pc: Case[PolyCombine.type, Combine]) = {
+  def combine(layerId: LayerId)(implicit pc: Case[PolyCombine.type, PolyCombine.In[K, V, M]]) = {
     logger.info(s"combineLayer ${layerId}...")
     val rdd = read(layerId)
     PolyCombine(layerId, rdd)
   }
 
   def validate(layerId: LayerId, dt: Option[DateTime])
-              (implicit pv: Case.Aux[PolyValidate.type, Validate, ValidateAux],
-                        rw: Case[PolyWrite.type, OWrite],
-                        lw: Case[PolyWrite.type, LWrite]): Unit = {
+              (implicit pv: Case.Aux[PolyValidate.type, PolyValidate.In[K, V, M], PolyValidate.Out[V]],
+                        rw: Case[PolyWrite.type, PolyWrite.In[Option, V]],
+                        lw: Case[PolyWrite.type, PolyWrite.In[List, V]]): Unit = {
     val metadata = attributeStore.readMetadata[TileLayerMetadata[K]](layerId)
     val (ingestedRaster, expectedRasterResampled, diffRasters) =
       PolyValidate(metadata, mvValidationTiffLocal, layerId, dt, read _)
@@ -77,18 +69,18 @@ abstract class TestEnvironment[
     PolyWrite(diffRasters, s"${validationDir}diff.${this.getClass.getName}")
   }
 
-  def ingest(implicit pi: Case[PolyIngest.type, Ingest]): Unit =
+  def ingest(implicit pi: Case[PolyIngest.type, PolyIngest.In[K, I, V]]): Unit =
     ingest(layerName, dataSet.typedKeyIndexMethod[K], dataSet)
 
-  def combine(implicit pc: Case[PolyCombine.type, Combine]): Unit = combine(LayerId(layerName, zoom))
+  def combine(implicit pc: Case[PolyCombine.type, PolyCombine.In[K, V, M]]): Unit = combine(LayerId(layerName, zoom))
 
   def validate(dt: Option[DateTime])
-              (implicit pv: Case.Aux[PolyValidate.type, Validate, ValidateAux],
-                        rw: Case[PolyWrite.type, OWrite],
-                        lw: Case[PolyWrite.type, LWrite]): Unit =
+              (implicit pv: Case.Aux[PolyValidate.type, PolyValidate.In[K, V, M], PolyValidate.Out[V]],
+                        rw: Case[PolyWrite.type, PolyWrite.In[Option, V]],
+                        lw: Case[PolyWrite.type, PolyWrite.In[List, V]]): Unit =
     validate(LayerId(layerName, zoom), dt)
   
-  def validate(implicit pv: Case.Aux[PolyValidate.type, Validate, ValidateAux],
-                          rw: Case[PolyWrite.type, OWrite],
-                          lw: Case[PolyWrite.type, LWrite]): Unit = validate(None)
+  def validate(implicit pv: Case.Aux[PolyValidate.type, PolyValidate.In[K, V, M], PolyValidate.Out[V]],
+                          rw: Case[PolyWrite.type, PolyWrite.In[Option, V]],
+                          lw: Case[PolyWrite.type, PolyWrite.In[List, V]]): Unit = validate(None)
 }
