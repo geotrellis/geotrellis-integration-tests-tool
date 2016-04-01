@@ -5,6 +5,7 @@ import geotrellis.raster.{ArrayMultibandTile, ArrayTile, CellGrid, MultibandTile
 import geotrellis.raster.io.geotiff.{MultibandGeoTiff, SinglebandGeoTiff}
 import geotrellis.spark._
 import geotrellis.vector.Extent
+
 import org.apache.spark.rdd.RDD
 import org.joda.time.DateTime
 import org.slf4j.{Logger, LoggerFactory}

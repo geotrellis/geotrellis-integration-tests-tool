@@ -3,8 +3,8 @@ package geotrellis.core.poly
 import geotrellis.proj4.WebMercator
 import geotrellis.raster.io.geotiff.GeoTiff
 import geotrellis.raster.{CellGrid, MultibandTile, Raster, Tile}
-import shapeless.{::, HNil, Poly2}
 
+import shapeless.{::, HNil, Poly2}
 import scalaz.Functor
 import scalaz.Scalaz._
 
