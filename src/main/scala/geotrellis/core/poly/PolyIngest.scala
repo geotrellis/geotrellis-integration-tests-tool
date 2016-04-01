@@ -4,7 +4,7 @@ import geotrellis.core.LayoutSchemeArg
 import geotrellis.raster.{MultibandTile, Tile}
 import geotrellis.spark._
 import geotrellis.spark.io._
-import geotrellis.spark.ingest.{MultibandIngest, Ingest}
+import geotrellis.spark.ingest.{Ingest, MultibandIngest}
 import geotrellis.spark.io.avro.AvroRecordCodec
 import geotrellis.spark.io.index.KeyIndexMethod
 import geotrellis.spark.tiling.TilerKeyMethods
@@ -12,14 +12,16 @@ import geotrellis.vector.ProjectedExtent
 import geotrellis.util.Component
 
 import org.apache.spark.rdd.RDD
-import org.slf4j.{LoggerFactory, Logger}
-import shapeless.Poly5
+import org.slf4j.{Logger, LoggerFactory}
+import shapeless.{::, HNil, Poly5}
 import spray.json.JsonFormat
 
 import scala.reflect.ClassTag
 
 object PolyIngest extends Poly5 {
   @transient lazy val logger: Logger = LoggerFactory.getLogger(this.getClass)
+
+  type In[K, I, V] = String :: KeyIndexMethod[K] :: LayoutSchemeArg :: RDD[(I, V)] :: LayerWriter[LayerId] :: HNil
 
   implicit def singleband[
     I: ClassTag: ? => TilerKeyMethods[I, K]: Component[?, ProjectedExtent],
