@@ -6,10 +6,10 @@ import geotrellis.spark.etl.s3.MultibandGeoTiffS3Input
 import geotrellis.test.TestEnvironment
 import geotrellis.util.S3Support
 import geotrellis.vector.ProjectedExtent
+
 import org.apache.spark.rdd.RDD
 
 trait S3Load { self: TestEnvironment[ProjectedExtent, SpatialKey, MultibandTile] with S3Support =>
-  val layerName: String = "s3Ingest"
   val zoom: Int = 8
 
   def loadTiles: RDD[(ProjectedExtent, MultibandTile)] = {

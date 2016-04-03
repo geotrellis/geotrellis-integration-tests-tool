@@ -1,5 +1,6 @@
 package geotrellis.test
 
+import geotrellis.config.json.dataset.JConfig
 import geotrellis.core.LayoutSchemeArg
 import geotrellis.core.poly.{PolyCombine, PolyIngest, PolyValidate, PolyWrite}
 import geotrellis.raster._
@@ -10,7 +11,6 @@ import geotrellis.spark.tiling.TilerKeyMethods
 import geotrellis.spark._
 import geotrellis.util.{Component, HadoopSupport, SparkSupport}
 import geotrellis.vector.{Extent, ProjectedExtent}
-import geotrellis.config._
 
 import org.apache.spark.rdd.RDD
 import org.joda.time.DateTime
@@ -23,10 +23,9 @@ abstract class TestEnvironment[
   I: ClassTag: ? => TilerKeyMethods[I, K]: Component[?, ProjectedExtent],
   K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag,
   V <: CellGrid: AvroRecordCodec: ClassTag
-](val dataSet: DataSet) extends SparkSupport with HadoopSupport with Serializable { // HadoopSupport mixin is deprecated
+](val jConfig: JConfig) extends SparkSupport with HadoopSupport with Serializable {
   type M = TileLayerMetadata[K]
 
-  val layerName: String
   val zoom: Int
 
   val writer: LayerWriter[LayerId]
@@ -35,8 +34,9 @@ abstract class TestEnvironment[
 
   def loadTiles: RDD[(I, V)]
 
-  val loadParams: Map[String, String]   = dataSet.getLoadParams
-  val ingestParams: Map[String, String] = dataSet.getIngestParams
+  val layerName    = jConfig.name
+  val loadParams   = jConfig.getLoadParams
+  val ingestParams = jConfig.getIngestParams
 
   def read(layerId: LayerId, extent: Option[Extent] = None): RDD[(K, V)] with Metadata[M] = {
     logger.info(s"reading ${layerId}...")
@@ -70,17 +70,22 @@ abstract class TestEnvironment[
   }
 
   def ingest(implicit pi: Case[PolyIngest.type, PolyIngest.In[K, I, V]]): Unit =
-    ingest(layerName, dataSet.typedKeyIndexMethod[K], dataSet)
+    ingest(layerName, jConfig.ingestOptions.keyIndexMethod.getKeyIndexMethod[K], jConfig.toLayoutSchemeArg)
 
   def combine(implicit pc: Case[PolyCombine.type, PolyCombine.In[K, V, M]]): Unit = combine(LayerId(layerName, zoom))
 
   def validate(dt: Option[DateTime])
               (implicit pv: Case.Aux[PolyValidate.type, PolyValidate.In[K, V, M], PolyValidate.Out[V]],
                         rw: Case[PolyWrite.type, PolyWrite.In[Option, V]],
-                        lw: Case[PolyWrite.type, PolyWrite.In[List, V]]): Unit =
-    validate(LayerId(layerName, zoom), dt)
-  
+                        lw: Case[PolyWrite.type, PolyWrite.In[List, V]]): Unit =  validate(LayerId(layerName, zoom), dt)
+
   def validate(implicit pv: Case.Aux[PolyValidate.type, PolyValidate.In[K, V, M], PolyValidate.Out[V]],
                           rw: Case[PolyWrite.type, PolyWrite.In[Option, V]],
-                          lw: Case[PolyWrite.type, PolyWrite.In[List, V]]): Unit = validate(None)
+                          lw: Case[PolyWrite.type, PolyWrite.In[List, V]]): Unit = validate(jConfig.validationOptions.dateTime)
+
+  def run(implicit pi: Case[PolyIngest.type, PolyIngest.In[K, I, V]],
+                   pc: Case[PolyCombine.type, PolyCombine.In[K, V, M]],
+                   pv: Case.Aux[PolyValidate.type, PolyValidate.In[K, V, M], PolyValidate.Out[V]],
+                   rw: Case[PolyWrite.type, PolyWrite.In[Option, V]],
+                   lw: Case[PolyWrite.type, PolyWrite.In[List, V]]) = { ingest; combine; validate }
 }

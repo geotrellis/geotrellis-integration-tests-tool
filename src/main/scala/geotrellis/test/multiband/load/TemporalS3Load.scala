@@ -5,10 +5,10 @@ import geotrellis.spark.{SpaceTimeKey, TemporalProjectedExtent}
 import geotrellis.spark.etl.s3.TemporalMultibandGeoTiffS3Input
 import geotrellis.test.TestEnvironment
 import geotrellis.util.S3Support
+
 import org.apache.spark.rdd.RDD
 
 trait TemporalS3Load { self: TestEnvironment[TemporalProjectedExtent, SpaceTimeKey, MultibandTile] with S3Support =>
-  val layerName: String = "s3Ingest"
   val zoom: Int = 8
 
   def loadTiles: RDD[(TemporalProjectedExtent, MultibandTile)] = {

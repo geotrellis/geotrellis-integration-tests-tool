@@ -8,7 +8,6 @@ import geotrellis.util.S3Support
 import org.apache.spark.rdd.RDD
 
 trait TemporalS3Load { self: TestEnvironment[TemporalProjectedExtent, SpaceTimeKey, Tile] with S3Support =>
-  val layerName: String = "s3Ingest"
   val zoom: Int = 8
 
   def loadTiles: RDD[(TemporalProjectedExtent, Tile)] = {

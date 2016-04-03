@@ -5,8 +5,8 @@ import geotrellis.raster.io.geotiff.GeoTiff
 import geotrellis.raster.{CellGrid, MultibandTile, Raster, Tile}
 
 import shapeless.{::, HNil, Poly2}
-import scalaz.Functor
-import scalaz.Scalaz._
+import cats.Functor
+import cats.syntax.functor._
 
 object PolyWrite extends Poly2 {
   type In[F[_], V <: CellGrid] = F[Raster[V]] :: String :: HNil

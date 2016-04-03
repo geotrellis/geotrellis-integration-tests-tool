@@ -5,14 +5,15 @@ import geotrellis.spark._
 import geotrellis.spark.io._
 import geotrellis.test.HadoopTest
 import geotrellis.test.singleband.load.TemporalHadoopLoad
+import geotrellis.config.json.dataset.JConfig
+import geotrellis.util.SparkSupport
 
 import org.apache.spark.SparkContext
-import com.typesafe.config.{Config => TConfig}
 
-abstract class TemporalHadoopIngestTest(implicit configuration: TConfig) extends HadoopTest[TemporalProjectedExtent, SpaceTimeKey, Tile](configuration) with TemporalHadoopLoad
+abstract class TemporalHadoopIngestTest(jConfig: JConfig) extends HadoopTest[TemporalProjectedExtent, SpaceTimeKey, Tile](jConfig) with TemporalHadoopLoad
 
 object TemporalHadoopIngestTest {
-  def apply(implicit configuration: TConfig, _sc: SparkContext) = new TemporalHadoopIngestTest {
-    @transient implicit val sc = _sc
+  def apply(implicit jConfig: JConfig, _sc: SparkContext) = new TemporalHadoopIngestTest(jConfig) {
+    @transient implicit val sc = SparkSupport.configureTime(jConfig)(_sc)
   }
 }

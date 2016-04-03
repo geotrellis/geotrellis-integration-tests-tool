@@ -9,7 +9,6 @@ import geotrellis.vector.ProjectedExtent
 import org.apache.spark.rdd.RDD
 
 trait HadoopLoad { self: TestEnvironment[ProjectedExtent, SpatialKey, Tile] =>
-  val layerName: String = "hadoopIngest"
   val zoom: Int = 8
 
   def loadTiles: RDD[(ProjectedExtent, Tile)] = {

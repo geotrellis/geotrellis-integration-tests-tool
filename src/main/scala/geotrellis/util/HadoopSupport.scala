@@ -7,7 +7,6 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 trait HadoopSupport extends HadoopConfig { self: SparkSupport =>
   val loadParams: Map[String, String]
   val ingestParams: Map[String, String]
-
   lazy val (hadoopLoadPath, hadoopIngestPath) = loadParams("path") -> ingestParams("path")
 
   def writeToHdfs(filePath: String, data: Array[Byte]): Unit = {
@@ -22,5 +21,10 @@ trait HadoopSupport extends HadoopConfig { self: SparkSupport =>
   def copyToLocal(source: String, dest: String) =
     FileSystem.get(conf).copyToLocalFile(new Path(source), new Path(dest))
 
-  def mvValidationTiffLocal: String = { /*copyToLocal(validationTiffPath, validationTiffPathLocal);*/ validationTiffPathLocal }
+  def validationDir = "/data/tmp/"
+
+  def mvValidationTiffLocal: String = {
+    /*copyToLocal(validationTiffPath, validationTiffPathLocal);*/ /*validationTiffPathLocal*/
+    "/data/tmp/tasmax_amon_BCSD_rcp26_r1i1p1_CONUS_CCSM4_200601-201012-200601120000_0_0.tif"
+  }
 }

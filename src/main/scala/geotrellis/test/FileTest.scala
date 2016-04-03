@@ -1,6 +1,6 @@
 package geotrellis.test
 
-import geotrellis.config._
+import geotrellis.config.json.dataset.JConfig
 import geotrellis.raster.CellGrid
 import geotrellis.spark._
 import geotrellis.spark.io.avro.AvroRecordCodec
@@ -8,7 +8,6 @@ import geotrellis.spark.io.file.{FileAttributeStore, FileLayerReader, FileLayerW
 import geotrellis.spark.tiling.TilerKeyMethods
 import geotrellis.vector.ProjectedExtent
 import geotrellis.util.Component
-
 import spray.json.JsonFormat
 
 import scala.reflect.ClassTag
@@ -17,7 +16,7 @@ abstract class FileTest[
   I: ClassTag: ? => TilerKeyMethods[I, K]: Component[?, ProjectedExtent],
   K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag,
   V <: CellGrid: AvroRecordCodec: ClassTag
-](dataSet: DataSet) extends TestEnvironment[I, K, V](dataSet) {
+](jConfig: JConfig) extends TestEnvironment[I, K, V](jConfig) {
   @transient lazy val writer = FileLayerWriter(hadoopIngestPath)
   @transient lazy val reader = FileLayerReader(hadoopIngestPath)
   @transient lazy val attributeStore = FileAttributeStore(hadoopIngestPath)

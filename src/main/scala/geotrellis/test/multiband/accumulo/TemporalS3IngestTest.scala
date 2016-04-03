@@ -5,14 +5,15 @@ import geotrellis.spark._
 import geotrellis.spark.io._
 import geotrellis.test.AccumuloTest
 import geotrellis.test.multiband.load.TemporalS3Load
-import org.apache.spark.SparkContext
-import com.typesafe.config.{Config => TConfig}
-import geotrellis.util.S3Support
+import geotrellis.config.json.dataset.JConfig
+import geotrellis.util.{S3Support, SparkSupport}
 
-abstract class TemporalS3IngestTest(implicit configuration: TConfig) extends AccumuloTest[TemporalProjectedExtent, SpaceTimeKey, MultibandTile](configuration) with S3Support with TemporalS3Load
+import org.apache.spark.SparkContext
+
+abstract class TemporalS3IngestTest(jConfig: JConfig) extends AccumuloTest[TemporalProjectedExtent, SpaceTimeKey, MultibandTile](jConfig) with S3Support with TemporalS3Load
 
 object TemporalS3IngestTest {
-  def apply(implicit configuration: TConfig, _sc: SparkContext) = new TemporalS3IngestTest {
-    @transient implicit val sc = _sc
+  def apply(implicit jConfig: JConfig, _sc: SparkContext) = new TemporalS3IngestTest(jConfig) {
+    @transient implicit val sc = SparkSupport.configureTime(jConfig)(_sc)
   }
 }
