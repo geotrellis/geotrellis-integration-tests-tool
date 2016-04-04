@@ -1,7 +1,11 @@
 package geotrellis.config
 
+import java.io.InputStream
+
 import geotrellis.config.json.backend.JCredensials
 import geotrellis.config.json.dataset.JConfig
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.{FileSystem, Path}
 
 trait Config {
   lazy val backendCfg = """{
@@ -86,6 +90,22 @@ trait Config {
 }
 
 object Config extends Config {
+  private def getJson(stream: InputStream): String = scala.io.Source.fromInputStream(stream).getLines.mkString(" ")
+
+  def getJson(filePath: String, conf: Configuration): String = {
+    val path = new Path(filePath)
+    val fs = FileSystem.get(conf)
+    val is = fs.open(path)
+    val json = getJson(is)
+    is.close(); fs.close(); json
+  }
+
+  def getJson(resource: String): String = {
+    val stream: InputStream = getClass.getResourceAsStream(resource)
+    val json = getJson(stream)
+    stream.close(); json
+  }
+
   // cfgs => (ss, sm, ts, tm)
   def splitConfig(cfgs: List[JConfig]): (List[JConfig], List[JConfig], List[JConfig], List[JConfig]) =
     (cfgs.filter(c => c.isSpatial && c.isSingleband),
