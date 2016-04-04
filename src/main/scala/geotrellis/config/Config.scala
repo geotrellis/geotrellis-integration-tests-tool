@@ -85,7 +85,7 @@ trait Config {
   lazy val splitDataset = Config.splitConfig(dataset)
 }
 
-object Config extends S3Config with AccumuloConfig with HadoopConfig with FileConfig {
+object Config extends Config {
   // cfgs => (ss, sm, ts, tm)
   def splitConfig(cfgs: List[JConfig]): (List[JConfig], List[JConfig], List[JConfig], List[JConfig]) =
     (cfgs.filter(c => c.isSpatial && c.isSingleband),

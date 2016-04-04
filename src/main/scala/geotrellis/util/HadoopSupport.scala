@@ -1,10 +1,10 @@
 package geotrellis.util
 
-import geotrellis.config.HadoopConfig
-import geotrellis.config.json.backend.{JBackend, JHadoop}
+import geotrellis.config.Config
+import geotrellis.config.json.backend.JBackend
 import org.apache.hadoop.fs.{FileSystem, Path}
 
-trait HadoopSupport extends HadoopConfig { self: SparkSupport =>
+trait HadoopSupport extends Config { self: SparkSupport =>
   val loadParams: Map[String, String]
   val ingestParams: Map[String, String]
   val loadCredensials: Option[JBackend]

@@ -1,11 +1,12 @@
 package geotrellis.util
 
 import geotrellis.config.json.backend.JBackend
-import geotrellis.config.S3Config
+import geotrellis.config.Config
 import geotrellis.spark.io.s3.S3Client
+
 import org.apache.commons.io.IOUtils
 
-trait S3Support extends S3Config { self: SparkSupport =>
+trait S3Support extends Config { self: SparkSupport =>
   val loadParams: Map[String, String]
   val ingestParams: Map[String, String]
   val loadCredensials: Option[JBackend]

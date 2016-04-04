@@ -1,10 +1,10 @@
 package geotrellis.util
 
-import geotrellis.config.AccumuloConfig
+import geotrellis.config.Config
 import geotrellis.config.json.backend.{JAccumulo, JBackend}
 import geotrellis.spark.io.accumulo.AccumuloInstance
 
-trait AccumuloSupport extends AccumuloConfig {
+trait AccumuloSupport extends Config {
   val loadParams: Map[String, String]
   val ingestParams: Map[String, String]
   val loadCredensials: Option[JBackend]
