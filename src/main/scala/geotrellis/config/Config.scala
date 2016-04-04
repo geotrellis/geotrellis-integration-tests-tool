@@ -1,11 +1,25 @@
 package geotrellis.config
 
+import geotrellis.config.json.backend.JCredensials
 import geotrellis.config.json.dataset.JConfig
 
 trait Config {
-  lazy val cfg = """[{
+  lazy val backendCfg = """{
+                     |  "accumulo": [{
+                     |    "name": "gis",
+                     |    "instance": "localhost",
+                     |    "zookeepers": "localhost",
+                     |    "user": "root",
+                     |    "password": "secret"
+                     |  }],
+                     |  "s3": [],
+                     |  "hadoop": []
+                     |}""".stripMargin
+
+  lazy val datasetCfg = """[{
                               |   "name":"nex",
                               |   "type":{
+                              |      "credensials": "accumulo",
                               |      "loadBackend":"hadoop",
                               |      "ingestBackend":"accumulo",
                               |      "tileType":"singleband",
@@ -66,8 +80,9 @@ trait Config {
                               |   }
                               |}]""".stripMargin
 
-  lazy val dataSets      = JConfig.readList(cfg)
-  lazy val splitDataSets = Config.splitConfig(dataSets)
+  lazy val backend      = JCredensials.read(backendCfg)
+  lazy val dataset      = JConfig.readList(datasetCfg)
+  lazy val splitDataset = Config.splitConfig(dataset)
 }
 
 object Config extends S3Config with AccumuloConfig with HadoopConfig with FileConfig {

@@ -1,12 +1,14 @@
 package geotrellis.util
 
 import geotrellis.config.HadoopConfig
-import geotrellis.spark.io.hadoop.HdfsUtils
+import geotrellis.config.json.backend.{JBackend, JHadoop}
 import org.apache.hadoop.fs.{FileSystem, Path}
 
 trait HadoopSupport extends HadoopConfig { self: SparkSupport =>
   val loadParams: Map[String, String]
   val ingestParams: Map[String, String]
+  val loadCredensials: Option[JBackend]
+  val ingestCredensials: Option[JBackend]
   lazy val (hadoopLoadPath, hadoopIngestPath) = loadParams("path") -> ingestParams("path")
 
   def writeToHdfs(filePath: String, data: Array[Byte]): Unit = {

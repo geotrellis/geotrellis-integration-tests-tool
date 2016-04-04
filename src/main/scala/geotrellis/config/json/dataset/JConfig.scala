@@ -5,9 +5,8 @@ import geotrellis.spark.tiling.ZoomedLayoutScheme
 
 import cats.data.Xor
 import org.joda.time.DateTime
-// import io.circe.generic.auto._
+import io.circe.generic.auto._
 import io.circe._
-import io.circe.generic.semiauto._
 import io.circe.parser._
 
 import scala.util.matching.Regex
@@ -35,25 +34,24 @@ case class JConfig(name: String, `type`: JType, path: JPath, ingestOptions: JIng
 }
 
 object JConfig {
-  // 7x faster compile time then using auto derivation
   implicit val decodeDateTime: Decoder[DateTime] = Decoder.instance { cursor =>
     cursor.as[String].flatMap {
       case dt => Xor.right(DateTime.parse(dt))
     }
   }
-  implicit val decodeJType: Decoder[JType] = deriveDecoder[JType]
-  implicit val decodeJPath: Decoder[JPath] = deriveDecoder[JPath]
-  implicit val decodeJLayoutScheme: Decoder[JLayoutScheme] = deriveDecoder[JLayoutScheme]
-  implicit val decodeJKeyIndexMethod: Decoder[JKeyIndexMethod] = deriveDecoder[JKeyIndexMethod]
-  implicit val decodeJIngestOptions: Decoder[JIngestOptions] = deriveDecoder[JIngestOptions]
-  implicit val decodeJValidationOptions: Decoder[JValidationOptions] = deriveDecoder[JValidationOptions]
-  implicit val decodeJConfig: Decoder[JConfig] = deriveDecoder[JConfig]
 
   val idRx = "[A-Z0-9]{20}"
   val keyRx = "[a-zA-Z0-9+/]+={0,2}"
   val slug = "[a-zA-Z0-9-]+"
   val S3UrlRx = new Regex(s"""s3n://(?:($idRx):($keyRx)@)?($slug)/{0,1}(.*)""", "aws_id", "aws_key", "bucket", "prefix")
 
-  def read(s: String)     = decode[JConfig](s).toOption
-  def readList(s: String) = decode[List[JConfig]](s).toList.flatten
+  def read(s: String) = decode[JConfig](s) match {
+    case Xor.Right(c) => c
+    case Xor.Left(e)  => throw new Exception(s"errors during configuration parsing: $e")
+  }
+
+  def readList(s: String) = decode[List[JConfig]](s) match {
+    case Xor.Right(list) => list
+    case Xor.Left(e)     => throw new Exception(s"errors during configuration parsing: $e")
+  }
 }

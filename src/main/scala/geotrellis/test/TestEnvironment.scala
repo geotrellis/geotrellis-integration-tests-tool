@@ -1,5 +1,7 @@
 package geotrellis.test
 
+import geotrellis.config.Config
+import geotrellis.config.json.backend.{JBackend, JCredensials}
 import geotrellis.config.json.dataset.JConfig
 import geotrellis.core.LayoutSchemeArg
 import geotrellis.core.poly.{PolyCombine, PolyIngest, PolyValidate, PolyWrite}
@@ -11,7 +13,6 @@ import geotrellis.spark.tiling.TilerKeyMethods
 import geotrellis.spark._
 import geotrellis.util.{Component, HadoopSupport, SparkSupport}
 import geotrellis.vector.{Extent, ProjectedExtent}
-
 import org.apache.spark.rdd.RDD
 import org.joda.time.DateTime
 import spray.json.JsonFormat
@@ -34,9 +35,11 @@ abstract class TestEnvironment[
 
   def loadTiles: RDD[(I, V)]
 
-  val layerName    = jConfig.name
-  val loadParams   = jConfig.getLoadParams
-  val ingestParams = jConfig.getIngestParams
+  val layerName         = jConfig.name
+  val loadParams        = jConfig.getLoadParams
+  val ingestParams      = jConfig.getIngestParams
+  val loadCredensials   = Config.backend.getLoad(jConfig)
+  val ingestCredensials = Config.backend.getIngest(jConfig)
 
   def read(layerId: LayerId, extent: Option[Extent] = None): RDD[(K, V)] with Metadata[M] = {
     logger.info(s"reading ${layerId}...")
