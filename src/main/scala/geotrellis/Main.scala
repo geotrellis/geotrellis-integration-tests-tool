@@ -39,4 +39,5 @@ object Main extends LazyLogging {
       }
       case None => throw new Exception("No valid arguments passed")
     }
+  }
 }
