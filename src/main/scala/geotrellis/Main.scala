@@ -10,9 +10,10 @@ import com.typesafe.scalalogging.slf4j.LazyLogging
 import cats.std.all._
 
 object Main extends LazyLogging {
-
   def main(args: Array[String]): Unit = {
     implicit val sc = SparkSupport.sparkContext()
+    implicit val credensials = Config.credensials
+
     val (ss, sm, ts, tm) = Config.splitDataset
 
     ss foreach { implicit cfg =>

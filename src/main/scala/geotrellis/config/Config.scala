@@ -1,17 +1,18 @@
 package geotrellis.config
 
-import java.io.InputStream
-
 import geotrellis.config.json.backend.JCredensials
 import geotrellis.config.json.dataset.JConfig
+
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
+
+import java.io.InputStream
 
 trait Config {
   lazy val backendCfg = """{
                      |  "accumulo": [{
                      |    "name": "gis",
-                     |    "instance": "localhost",
+                     |    "instance": "gis",
                      |    "zookeepers": "localhost",
                      |    "user": "root",
                      |    "password": "secret"
@@ -23,7 +24,7 @@ trait Config {
   lazy val datasetCfg = """[{
                               |   "name":"nex",
                               |   "type":{
-                              |      "credensials": "accumulo",
+                              |      "ingestCredensials": "gis",
                               |      "loadBackend":"hadoop",
                               |      "ingestBackend":"accumulo",
                               |      "tileType":"singleband",
@@ -46,13 +47,16 @@ trait Config {
                               |      }
                               |   },
                               |   "validationOptions":{
-                              |      "validationExtentSize":0.3,
-                              |      "resolutionThreshold":0.1
+                              |      "extentSize":0.3,
+                              |      "resolutionThreshold":0.1,
+                              |      "tmpDir": "/data/tmp/",
+                              |      "tiffLocal": "/data/tmp/tasmax_amon_BCSD_rcp26_r1i1p1_CONUS_CCSM4_200601-201012-200601120000_0_0.tif"
                               |   }
                               |},
                               |{
                               |   "name":"nex",
                               |   "type":{
+                              |      "ingestCredensials": "gis",
                               |      "loadBackend":"hadoop",
                               |      "ingestBackend":"accumulo",
                               |      "tileType":"singleband",
@@ -78,13 +82,15 @@ trait Config {
                               |      }
                               |   },
                               |   "validationOptions":{
-                              |      "validationExtentSize":0.3,
+                              |      "extentSize":0.3,
                               |      "resolutionThreshold":0.1,
-                              |      "dateTime": "2006-01-16T12:00:00"
+                              |      "dateTime": "2006-01-16T12:00:00",
+                              |      "tmpDir": "/data/tmp/",
+                              |      "tiffLocal": "/data/tmp/tasmax_amon_BCSD_rcp26_r1i1p1_CONUS_CCSM4_200601-201012-200601120000_0_0.tif"
                               |   }
                               |}]""".stripMargin
 
-  lazy val backend      = JCredensials.read(backendCfg)
+  lazy val credensials  = JCredensials.read(backendCfg)
   lazy val dataset      = JConfig.readList(datasetCfg)
   lazy val splitDataset = Config.splitConfig(dataset)
 }

@@ -6,15 +6,16 @@ import geotrellis.spark.io._
 import geotrellis.test.FileTest
 import geotrellis.test.multiband.load.S3Load
 import geotrellis.vector.ProjectedExtent
-import org.apache.spark.SparkContext
-import com.typesafe.config.{Config => TConfig}
+import geotrellis.config.json.backend.JCredensials
 import geotrellis.config.json.dataset.JConfig
 import geotrellis.util.S3Support
 
-abstract class S3IngestTest(jConfig: JConfig) extends FileTest[ProjectedExtent, SpatialKey, MultibandTile](jConfig) with S3Support with S3Load
+import org.apache.spark.SparkContext
+
+abstract class S3IngestTest(jConfig: JConfig, jCredensials: JCredensials) extends FileTest[ProjectedExtent, SpatialKey, MultibandTile](jConfig, jCredensials) with S3Support with S3Load
 
 object S3IngestTest {
-  def apply(implicit jConfig: JConfig, _sc: SparkContext) = new S3IngestTest(jConfig) {
+  def apply(implicit jConfig: JConfig, jCredensials: JCredensials, _sc: SparkContext) = new S3IngestTest(jConfig, jCredensials) {
     @transient implicit val sc = _sc
   }
 }

@@ -1,5 +1,6 @@
 package geotrellis.test.singleband.file
 
+import geotrellis.config.json.backend.JCredensials
 import geotrellis.raster.Tile
 import geotrellis.spark._
 import geotrellis.spark.io._
@@ -10,10 +11,10 @@ import geotrellis.config.json.dataset.JConfig
 
 import org.apache.spark.SparkContext
 
-abstract class HadoopIngestTest(jConfig: JConfig) extends FileTest[ProjectedExtent, SpatialKey, Tile](jConfig) with HadoopLoad
+abstract class HadoopIngestTest(jConfig: JConfig, jCredensials: JCredensials) extends FileTest[ProjectedExtent, SpatialKey, Tile](jConfig, jCredensials) with HadoopLoad
 
 object HadoopIngestTest {
-  def apply(implicit jConfig: JConfig, _sc: SparkContext) = new HadoopIngestTest(jConfig) {
+  def apply(implicit jConfig: JConfig, jCredensials: JCredensials, _sc: SparkContext) = new HadoopIngestTest(jConfig, jCredensials) {
     @transient implicit val sc = _sc
   }
 }

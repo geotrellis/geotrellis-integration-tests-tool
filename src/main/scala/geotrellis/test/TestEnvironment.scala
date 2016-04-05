@@ -1,7 +1,6 @@
 package geotrellis.test
 
-import geotrellis.config.Config
-import geotrellis.config.json.backend.{JBackend, JCredensials}
+import geotrellis.config.json.backend.JCredensials
 import geotrellis.config.json.dataset.JConfig
 import geotrellis.core.LayoutSchemeArg
 import geotrellis.core.poly.{PolyCombine, PolyIngest, PolyValidate, PolyWrite}
@@ -13,6 +12,7 @@ import geotrellis.spark.tiling.TilerKeyMethods
 import geotrellis.spark._
 import geotrellis.util.{Component, HadoopSupport, SparkSupport}
 import geotrellis.vector.{Extent, ProjectedExtent}
+
 import org.apache.spark.rdd.RDD
 import org.joda.time.DateTime
 import spray.json.JsonFormat
@@ -24,10 +24,8 @@ abstract class TestEnvironment[
   I: ClassTag: ? => TilerKeyMethods[I, K]: Component[?, ProjectedExtent],
   K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag,
   V <: CellGrid: AvroRecordCodec: ClassTag
-](val jConfig: JConfig) extends SparkSupport with HadoopSupport with Serializable {
+](val jConfig: JConfig, val jCredensials: JCredensials) extends SparkSupport with HadoopSupport with Serializable {
   type M = TileLayerMetadata[K]
-
-  val zoom: Int
 
   val writer: LayerWriter[LayerId]
   val reader: FilteringLayerReader[LayerId]
@@ -38,8 +36,8 @@ abstract class TestEnvironment[
   val layerName         = jConfig.name
   val loadParams        = jConfig.getLoadParams
   val ingestParams      = jConfig.getIngestParams
-  val loadCredensials   = Config.backend.getLoad(jConfig)
-  val ingestCredensials = Config.backend.getIngest(jConfig)
+  val loadCredensials   = jCredensials.getLoad(jConfig)
+  val ingestCredensials = jCredensials.getIngest(jConfig)
 
   def read(layerId: LayerId, extent: Option[Extent] = None): RDD[(K, V)] with Metadata[M] = {
     logger.info(s"reading ${layerId}...")
@@ -65,22 +63,24 @@ abstract class TestEnvironment[
                         lw: Case[PolyWrite.type, PolyWrite.In[List, V]]): Unit = {
     val metadata = attributeStore.readMetadata[TileLayerMetadata[K]](layerId)
     val (ingestedRaster, expectedRasterResampled, diffRasters) =
-      PolyValidate(metadata, mvValidationTiffLocal, layerId, dt, read _)
+      PolyValidate(metadata, jConfig.validationOptions.tiffLocal, layerId, dt, read _)
 
-    PolyWrite(ingestedRaster, s"${validationDir}ingested.${this.getClass.getName}")
-    PolyWrite(expectedRasterResampled, s"${validationDir}expected.${this.getClass.getName}")
-    PolyWrite(diffRasters, s"${validationDir}diff.${this.getClass.getName}")
+    PolyWrite(ingestedRaster, s"${jConfig.validationOptions.tmpDir}ingested.${this.getClass.getName}")
+    PolyWrite(expectedRasterResampled, s"${jConfig.validationOptions.tmpDir}expected.${this.getClass.getName}")
+    PolyWrite(diffRasters, s"${jConfig.validationOptions.tmpDir}diff.${this.getClass.getName}")
   }
 
   def ingest(implicit pi: Case[PolyIngest.type, PolyIngest.In[K, I, V]]): Unit =
     ingest(layerName, jConfig.ingestOptions.keyIndexMethod.getKeyIndexMethod[K], jConfig.toLayoutSchemeArg)
 
-  def combine(implicit pc: Case[PolyCombine.type, PolyCombine.In[K, V, M]]): Unit = combine(LayerId(layerName, zoom))
+  def combine(implicit pc: Case[PolyCombine.type, PolyCombine.In[K, V, M]]): Unit =
+    combine(attributeStore.layerIds.filter(_.name == layerName).sortWith(_.zoom > _.zoom).last)
 
   def validate(dt: Option[DateTime])
               (implicit pv: Case.Aux[PolyValidate.type, PolyValidate.In[K, V, M], PolyValidate.Out[V]],
                         rw: Case[PolyWrite.type, PolyWrite.In[Option, V]],
-                        lw: Case[PolyWrite.type, PolyWrite.In[List, V]]): Unit =  validate(LayerId(layerName, zoom), dt)
+                        lw: Case[PolyWrite.type, PolyWrite.In[List, V]]): Unit =
+    validate(attributeStore.layerIds.filter(_.name == layerName).sortWith(_.zoom > _.zoom).last, dt)
 
   def validate(implicit pv: Case.Aux[PolyValidate.type, PolyValidate.In[K, V, M], PolyValidate.Out[V]],
                           rw: Case[PolyWrite.type, PolyWrite.In[Option, V]],

@@ -17,7 +17,7 @@ case class JCredensials(accumulo: List[JAccumulo], s3: List[JS3], hadoop: List[J
       case "hadoop"   => getHadoopCfgs
     })(_))
 
-  def getIngest(jConfig: JConfig) = get(jConfig.`type`.ingestBackend, jConfig.`type`.ingsetCredensials)
+  def getIngest(jConfig: JConfig) = get(jConfig.`type`.ingestBackend, jConfig.`type`.ingestCredensials)
   def getLoad(jConfig: JConfig)   = get(jConfig.`type`.loadBackend, jConfig.`type`.loadCredensials)
 }
 
