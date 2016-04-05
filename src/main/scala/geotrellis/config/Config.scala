@@ -2,9 +2,9 @@ package geotrellis.config
 
 import geotrellis.config.json.backend.JCredensials
 import geotrellis.config.json.dataset.JConfig
+
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
-
 import org.apache.spark.SparkContext
 
 object Config {

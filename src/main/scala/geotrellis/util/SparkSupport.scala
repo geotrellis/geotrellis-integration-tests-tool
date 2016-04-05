@@ -3,6 +3,7 @@ package geotrellis.util
 import geotrellis.config.json.dataset.JConfig
 import geotrellis.spark.io.hadoop.formats.TemporalGeoTiffInputFormat
 import geotrellis.spark.util.SparkUtils
+
 import org.apache.spark.{SparkConf, SparkContext}
 import org.slf4j.{Logger, LoggerFactory}
 
