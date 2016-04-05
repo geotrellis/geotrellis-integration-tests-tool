@@ -14,7 +14,7 @@ object Main extends LazyLogging {
     MainOptions.parse(args) match {
       case Some(config) => {
         implicit val sc = SparkSupport.sparkContext()
-        implicit val credensials = Config.credensials(config.credensials)
+        implicit val credentials = Config.credentials(config.credentials)
 
         val (ss, sm, ts, tm) = Config.splitDataset(config.datasets)
 

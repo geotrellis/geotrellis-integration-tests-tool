@@ -3,5 +3,5 @@
 ```bash
 spark-submit ${PWD}/target/scala-2.10/geotrellis-integration-tests-assembly-0.1.0-SNAPSHOT.jar \
              --datasets "file:///${PWD}/conf/datasets.json" \
-             --credensials "file:///${PWD}/conf/credensials.json"
+             --credentials "file:///${PWD}/conf/credentials.json"
 ```

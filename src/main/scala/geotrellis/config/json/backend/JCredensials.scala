@@ -10,8 +10,8 @@ case class JCredensials(accumulo: List[JAccumulo], s3: List[JS3], hadoop: List[J
   def getS3Cfgs       = s3.map(e => e.name -> e).toMap
   def getHadoopCfgs   = hadoop.map(e => e.name -> e).toMap
 
-  def get(backend: String, credensials: Option[String]) =
-    credensials.map((backend match {
+  def get(backend: String, credentials: Option[String]) =
+    credentials.map((backend match {
       case "s3"       => getS3Cfgs
       case "accumulo" => getAccumuloCfgs
       case "hadoop"   => getHadoopCfgs

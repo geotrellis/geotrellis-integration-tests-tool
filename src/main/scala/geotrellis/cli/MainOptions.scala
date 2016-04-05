@@ -12,11 +12,11 @@ object MainOptions {
       if (x.nonEmpty) success else failure(s"Option --datasets must be non-empty")
     } text s"datasets is a non-empty String property"
 
-    opt[String]("credensials") action { (x, c) =>
-      c.copy(credensials = x)
+    opt[String]("credentials") action { (x, c) =>
+      c.copy(credentials = x)
     } validate { x =>
-      if (x.nonEmpty) success else failure(s"Option --credensials must be non-empty")
-    } text s"credensials is a non-empty String property"
+      if (x.nonEmpty) success else failure(s"Option --credentials must be non-empty")
+    } text s"credentials is a non-empty String property"
 
     help("help") text "prints this usage text"
   }
