@@ -5,7 +5,6 @@ import geotrellis.spark.io.accumulo.AccumuloInstance
 
 trait AccumuloSupport extends BackendSupport {
   lazy val table = ingestParams("table")
-  println(s"ingestCredensials: ${ingestCredensials}")
   @transient lazy val instance = ingestCredensials.map { case credensials: JAccumulo =>
     AccumuloInstance(
       credensials.instance,
