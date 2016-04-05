@@ -40,6 +40,7 @@ val circe = Seq(
 )
 
 libraryDependencies ++= Seq(
+  "com.github.scopt"      %% "scopt"         % "3.4.0",
   "com.chuusai"           %% "shapeless"     % "2.3.0",
   "org.apache.spark"      %% "spark-core"    % "1.5.2" % "provided",
   "org.apache.hadoop"      % "hadoop-client" % "2.7.1" % "provided",
@@ -49,6 +50,17 @@ libraryDependencies ++= Seq(
 addCompilerPlugin("org.spire-math" % "kind-projector" % "0.7.1" cross CrossVersion.binary)
 
 addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+
+sourceGenerators in Compile <+= (sourceManaged in Compile, version, name) map { (d, v, n) =>
+  val file = d / "geotrellis/cli/Info.scala"
+  IO.write(file, """package geotrellis.cli
+                   |object Info {
+                   |  val version = "%s"
+                   |  val name    = "%s"
+                   |}
+                   |""".stripMargin.format(v, n))
+  Seq(file)
+}
 
 test in assembly := {}
 
