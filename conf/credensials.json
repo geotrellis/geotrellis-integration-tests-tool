@@ -1,0 +1,11 @@
+{
+  "accumulo": [{
+    "name": "gis",
+    "instance": "gis",
+    "zookeepers": "localhost",
+    "user": "root",
+    "password": "secret"
+  }],
+  "s3": [],
+  "hadoop": []
+}

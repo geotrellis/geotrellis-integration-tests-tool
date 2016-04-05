@@ -1,8 +1,7 @@
 package geotrellis.test
 
 import geotrellis.config.json.backend.JCredensials
-import geotrellis.config.json.dataset.JConfig
-import geotrellis.core.LayoutSchemeArg
+import geotrellis.config.json.dataset.{JConfig, JLayoutScheme}
 import geotrellis.core.poly.{PolyCombine, PolyIngest, PolyValidate, PolyWrite}
 import geotrellis.raster._
 import geotrellis.spark.io._
@@ -10,7 +9,7 @@ import geotrellis.spark.io.avro.AvroRecordCodec
 import geotrellis.spark.io.index.KeyIndexMethod
 import geotrellis.spark.tiling.TilerKeyMethods
 import geotrellis.spark._
-import geotrellis.util.{Component, HadoopSupport, SparkSupport}
+import geotrellis.util.{Component, SparkSupport}
 import geotrellis.vector.{Extent, ProjectedExtent}
 
 import org.apache.spark.rdd.RDD
@@ -24,7 +23,7 @@ abstract class TestEnvironment[
   I: ClassTag: ? => TilerKeyMethods[I, K]: Component[?, ProjectedExtent],
   K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag,
   V <: CellGrid: AvroRecordCodec: ClassTag
-](val jConfig: JConfig, val jCredensials: JCredensials) extends SparkSupport with HadoopSupport with Serializable {
+](val jConfig: JConfig, val jCredensials: JCredensials) extends SparkSupport with Serializable {
   type M = TileLayerMetadata[K]
 
   val writer: LayerWriter[LayerId]
@@ -38,17 +37,18 @@ abstract class TestEnvironment[
   val ingestParams      = jConfig.getIngestParams
   val loadCredensials   = jCredensials.getLoad(jConfig)
   val ingestCredensials = jCredensials.getIngest(jConfig)
+  val layerId           = attributeStore.layerIds.filter(_.name == layerName).sortWith(_.zoom > _.zoom).last
 
   def read(layerId: LayerId, extent: Option[Extent] = None): RDD[(K, V)] with Metadata[M] = {
     logger.info(s"reading ${layerId}...")
     extent.fold(reader.read[K, V, M](layerId))(e => reader.read[K, V, M](layerId,  new LayerQuery[K, M].where(Intersects(e))))
   }
 
-  def ingest(layer: String, keyIndexMethod: KeyIndexMethod[K], lsa: LayoutSchemeArg)
+  def ingest(layer: String, keyIndexMethod: KeyIndexMethod[K], jls: JLayoutScheme)
             (implicit pi: Case[PolyIngest.type, PolyIngest.In[K, I, V]]): Unit = {
     conf.set("io.map.index.interval", "1")
     logger.info(s"ingesting tiles into accumulo (${layer})...")
-    PolyIngest(layer, keyIndexMethod, lsa, loadTiles, writer)
+    PolyIngest(layer, keyIndexMethod, jls, loadTiles, writer)
   }
 
   def combine(layerId: LayerId)(implicit pc: Case[PolyCombine.type, PolyCombine.In[K, V, M]]) = {
@@ -71,16 +71,14 @@ abstract class TestEnvironment[
   }
 
   def ingest(implicit pi: Case[PolyIngest.type, PolyIngest.In[K, I, V]]): Unit =
-    ingest(layerName, jConfig.ingestOptions.keyIndexMethod.getKeyIndexMethod[K], jConfig.toLayoutSchemeArg)
+    ingest(layerName, jConfig.ingestOptions.keyIndexMethod.getKeyIndexMethod[K], jConfig.ingestOptions.layoutScheme)
 
-  def combine(implicit pc: Case[PolyCombine.type, PolyCombine.In[K, V, M]]): Unit =
-    combine(attributeStore.layerIds.filter(_.name == layerName).sortWith(_.zoom > _.zoom).last)
+  def combine(implicit pc: Case[PolyCombine.type, PolyCombine.In[K, V, M]]): Unit = combine(layerId)
 
   def validate(dt: Option[DateTime])
               (implicit pv: Case.Aux[PolyValidate.type, PolyValidate.In[K, V, M], PolyValidate.Out[V]],
                         rw: Case[PolyWrite.type, PolyWrite.In[Option, V]],
-                        lw: Case[PolyWrite.type, PolyWrite.In[List, V]]): Unit =
-    validate(attributeStore.layerIds.filter(_.name == layerName).sortWith(_.zoom > _.zoom).last, dt)
+                        lw: Case[PolyWrite.type, PolyWrite.In[List, V]]): Unit = validate(layerId, dt)
 
   def validate(implicit pv: Case.Aux[PolyValidate.type, PolyValidate.In[K, V, M], PolyValidate.Out[V]],
                           rw: Case[PolyWrite.type, PolyWrite.In[Option, V]],

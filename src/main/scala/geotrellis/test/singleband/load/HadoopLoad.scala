@@ -9,8 +9,6 @@ import geotrellis.vector.ProjectedExtent
 import org.apache.spark.rdd.RDD
 
 trait HadoopLoad { self: TestEnvironment[ProjectedExtent, SpatialKey, Tile] =>
-  val zoom: Int = 8
-
   def loadTiles: RDD[(ProjectedExtent, Tile)] = {
     logger.info("loading tiles from hdfs...")
     val hadoopInput = new GeoTiffHadoopInput()

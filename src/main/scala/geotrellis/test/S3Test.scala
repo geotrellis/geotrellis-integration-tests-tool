@@ -9,6 +9,7 @@ import geotrellis.spark.io.s3._
 import geotrellis.spark.tiling.TilerKeyMethods
 import geotrellis.vector.ProjectedExtent
 import geotrellis.util.{Component, S3Support}
+
 import spray.json.JsonFormat
 
 import scala.reflect.ClassTag

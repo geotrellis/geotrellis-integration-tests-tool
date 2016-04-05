@@ -1,8 +1,5 @@
 package geotrellis.config.json.dataset
 
-import geotrellis.core.LayoutSchemeArg
-import geotrellis.spark.tiling.ZoomedLayoutScheme
-
 import cats.data.Xor
 import org.joda.time.DateTime
 import io.circe.generic.auto._
@@ -23,7 +20,6 @@ case class JConfig(name: String, `type`: JType, path: JPath, ingestOptions: JIng
 
   def getLoadParams     = getInputParams(`type`.loadBackend, path.load)
   def getIngestParams   = getInputParams(`type`.ingestBackend, path.ingest)
-  def toLayoutSchemeArg = LayoutSchemeArg((crs, ts) => ZoomedLayoutScheme(crs, ts), ingestOptions.layoutScheme.getCrs, ingestOptions.layoutScheme.tileSize)
   def isTemporal        = `type`.ingestType == "temporal"
   def isSpatial         = `type`.ingestType == "spatial"
   def isSingleband      = `type`.tileType == "singleband"

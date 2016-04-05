@@ -10,8 +10,6 @@ import geotrellis.vector.ProjectedExtent
 import org.apache.spark.rdd.RDD
 
 trait S3Load { self: TestEnvironment[ProjectedExtent, SpatialKey, Tile] with S3Support =>
-  val zoom: Int = 8
-
   def loadTiles: RDD[(ProjectedExtent, Tile)] = {
     logger.info("loading tiles from s3...")
     val s3Input = new GeoTiffS3Input()

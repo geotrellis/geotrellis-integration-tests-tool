@@ -1,16 +1,10 @@
 package geotrellis.util
 
-import geotrellis.config.json.backend.JBackend
-import geotrellis.config.Config
 import geotrellis.spark.io.s3.S3Client
 
 import org.apache.commons.io.IOUtils
 
-trait S3Support extends Config { self: SparkSupport =>
-  val loadParams: Map[String, String]
-  val ingestParams: Map[String, String]
-  val loadCredensials: Option[JBackend]
-  val ingestCredensials: Option[JBackend]
+trait S3Support extends BackendSupport { self: SparkSupport =>
   lazy val (s3LoadBucket, s3LoadPrefix)     = loadParams("bucket") -> loadParams("prefix")
   lazy val (s3IngestBucket, s3IngestPrefix) = ingestParams("bucket") -> ingestParams("prefix")
   @transient lazy val s3Client = S3Client.default

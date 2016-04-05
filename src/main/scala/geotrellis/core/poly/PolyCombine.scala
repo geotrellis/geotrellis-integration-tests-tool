@@ -17,6 +17,10 @@ object PolyCombine extends Poly2 {
 
   type In[K, V, M] = LayerId :: RDD[(K, V)] with Metadata[M] :: HNil
 
+  private def createTiles[K, V](tile: (K, V)): Seq[(K, V)] = Seq(tile)
+  private def mergeTiles1[K, V](tiles: Seq[(K, V)], tile: (K, V)): Seq[(K, V)] = tiles :+ tile
+  private def mergeTiles2[K, V](tiles1: Seq[(K, V)], tiles2: Seq[(K, V)]): Seq[(K, V)] = tiles1 ++ tiles2
+
   implicit def singleband[K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag] =
     at[LayerId, TileLayerRDD[K]] { case (layerId, rdd) =>
       val crdd =

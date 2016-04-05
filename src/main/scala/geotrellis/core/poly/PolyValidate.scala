@@ -21,8 +21,8 @@ object PolyValidate extends Poly5 {
       TileLayerMetadata[SpatialKey], String, LayerId, Option[DateTime],
       (LayerId, Option[Extent]) => TileLayerRDD[SpatialKey]
     ] {
-    case (metadata, mvValidationTiffLocal, layerId, dt, read) =>
-      val expected = SinglebandGeoTiff(mvValidationTiffLocal)
+    case (metadata, tiffLocal, layerId, dt, read) =>
+      val expected = SinglebandGeoTiff(tiffLocal)
       val expectedRaster = expected.raster.reproject(expected.crs, metadata.crs)
 
       val ingestedRaster =
@@ -48,8 +48,8 @@ object PolyValidate extends Poly5 {
       TileLayerMetadata[SpaceTimeKey], String, LayerId, Option[DateTime],
       (LayerId, Option[Extent]) => TileLayerRDD[SpaceTimeKey]
     ] {
-    case (metadata, mvValidationTiffLocal, layerId, dt, read) =>
-      val expected = SinglebandGeoTiff(mvValidationTiffLocal)
+    case (metadata, tiffLocal, layerId, dt, read) =>
+      val expected = SinglebandGeoTiff(tiffLocal)
       val expectedRaster = expected.raster.reproject(expected.crs, metadata.crs)
 
       val ingestedRaster =
@@ -75,8 +75,8 @@ object PolyValidate extends Poly5 {
       TileLayerMetadata[SpatialKey], String, LayerId, Option[DateTime],
       (LayerId, Option[Extent]) => MultibandTileLayerRDD[SpatialKey]
     ] {
-    case (metadata, mvValidationTiffLocal, layerId, dt, read) =>
-      val expected = MultibandGeoTiff(mvValidationTiffLocal)
+    case (metadata, tiffLocal, layerId, dt, read) =>
+      val expected = MultibandGeoTiff(tiffLocal)
       val expectedRaster = expected.raster.reproject(expected.crs, metadata.crs)
 
       val ingestedRaster =
@@ -105,8 +105,8 @@ object PolyValidate extends Poly5 {
       TileLayerMetadata[SpaceTimeKey], String, LayerId, Option[DateTime],
       (LayerId, Option[Extent]) => MultibandTileLayerRDD[SpaceTimeKey]
     ] {
-    case (metadata, mvValidationTiffLocal, layerId, dt, read) =>
-      val expected = MultibandGeoTiff(mvValidationTiffLocal)
+    case (metadata, tiffLocal, layerId, dt, read) =>
+      val expected = MultibandGeoTiff(tiffLocal)
       val expectedRaster = expected.raster.reproject(expected.crs, metadata.crs)
 
       val ingestedRaster =

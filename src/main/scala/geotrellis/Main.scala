@@ -1,6 +1,5 @@
 package geotrellis
 
-import geotrellis.spark._
 import geotrellis.spark.io._
 import geotrellis.test._
 import geotrellis.util.SparkSupport
@@ -12,9 +11,9 @@ import cats.std.all._
 object Main extends LazyLogging {
   def main(args: Array[String]): Unit = {
     implicit val sc = SparkSupport.sparkContext()
-    implicit val credensials = Config.credensials
+    implicit val credensials = Config.credensials("file:///path/to/conf/credensials.json")
 
-    val (ss, sm, ts, tm) = Config.splitDataset
+    val (ss, sm, ts, tm) = Config.splitDataset("file:///path/to/conf/datasets.json")
 
     ss foreach { implicit cfg =>
       singleband.tests foreach { case (_, get) => get().run }

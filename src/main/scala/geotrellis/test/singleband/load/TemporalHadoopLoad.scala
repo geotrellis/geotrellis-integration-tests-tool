@@ -8,8 +8,6 @@ import geotrellis.test.TestEnvironment
 import org.apache.spark.rdd.RDD
 
 trait TemporalHadoopLoad { self: TestEnvironment[TemporalProjectedExtent, SpaceTimeKey, Tile] =>
-  val zoom: Int = 8
-
   def loadTiles: RDD[(TemporalProjectedExtent, Tile)] = {
     logger.info("loading tiles from hdfs...")
     val hadoopInput = new TemporalGeoTiffHadoopInput()

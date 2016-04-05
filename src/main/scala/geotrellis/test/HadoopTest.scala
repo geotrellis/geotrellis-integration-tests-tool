@@ -8,7 +8,7 @@ import geotrellis.spark.io.avro.AvroRecordCodec
 import geotrellis.spark.io.hadoop._
 import geotrellis.spark.tiling.TilerKeyMethods
 import geotrellis.vector.ProjectedExtent
-import geotrellis.util.Component
+import geotrellis.util.{Component, HadoopSupport}
 
 import org.apache.hadoop.fs.Path
 import spray.json.JsonFormat
@@ -19,7 +19,7 @@ abstract class HadoopTest[
   I: ClassTag: ? => TilerKeyMethods[I, K]: Component[?, ProjectedExtent],
   K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag,
   V <: CellGrid: AvroRecordCodec: ClassTag
-](jConfig: JConfig, jCredensials: JCredensials) extends TestEnvironment[I, K, V](jConfig, jCredensials) {
+](jConfig: JConfig, jCredensials: JCredensials) extends TestEnvironment[I, K, V](jConfig, jCredensials) with HadoopSupport {
   @transient lazy val writer = HadoopLayerWriter(new Path(hadoopIngestPath))
   @transient lazy val reader = HadoopLayerReader(new Path(hadoopIngestPath))
   @transient lazy val attributeStore = HadoopAttributeStore(hadoopIngestPath)
