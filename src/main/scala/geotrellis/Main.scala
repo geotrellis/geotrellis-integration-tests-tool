@@ -16,7 +16,11 @@ object Main extends LazyLogging {
         implicit val sc = SparkSupport.sparkContext()
         implicit val credentials = Config.credentials(config.credentials)
 
+        println(credentials)
+
         val (ss, sm, ts, tm) = Config.splitDataset(config.datasets)
+
+        println((ss, sm, ts, tm))
 
         ss foreach { implicit cfg =>
           singleband.tests foreach { case (_, get) => get().run }

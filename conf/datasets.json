@@ -2,7 +2,7 @@
   {
     "name":"nex",
     "type":{
-      "ingestCredensials":"gis",
+      "ingestCredentials":"gis",
       "loadBackend":"hadoop",
       "ingestBackend":"accumulo",
       "tileType":"singleband",
@@ -34,7 +34,7 @@
   {
     "name":"nex",
     "type":{
-      "ingestCredensials":"gis",
+      "ingestCredentials":"gis",
       "loadBackend":"hadoop",
       "ingestBackend":"accumulo",
       "tileType":"singleband",
