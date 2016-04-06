@@ -1,7 +1,7 @@
 package geotrellis.test
 
 import geotrellis.config.json.backend.JCredensials
-import geotrellis.config.json.dataset.{JConfig, JLayoutScheme}
+import geotrellis.config.json.dataset.{JConfig, JIngestOptions}
 import geotrellis.core.poly.{PolyCombine, PolyIngest, PolyValidate, PolyWrite}
 import geotrellis.raster._
 import geotrellis.spark.io._
@@ -11,7 +11,6 @@ import geotrellis.spark.tiling.TilerKeyMethods
 import geotrellis.spark._
 import geotrellis.util.{Component, SparkSupport}
 import geotrellis.vector.{Extent, ProjectedExtent}
-
 import org.apache.spark.rdd.RDD
 import org.joda.time.DateTime
 import spray.json.JsonFormat
@@ -44,11 +43,11 @@ abstract class TestEnvironment[
     extent.fold(reader.read[K, V, M](layerId))(e => reader.read[K, V, M](layerId,  new LayerQuery[K, M].where(Intersects(e))))
   }
 
-  def ingest(layer: String, keyIndexMethod: KeyIndexMethod[K], jls: JLayoutScheme)
+  def ingest(layer: String, keyIndexMethod: KeyIndexMethod[K], jio: JIngestOptions)
             (implicit pi: Case[PolyIngest.type, PolyIngest.In[K, I, V]]): Unit = {
     conf.set("io.map.index.interval", "1")
     logger.info(s"ingesting tiles into accumulo (${layer})...")
-    PolyIngest(layer, keyIndexMethod, jls, loadTiles, writer)
+    PolyIngest(layer, keyIndexMethod, jio, loadTiles, writer)
   }
 
   def combine(layerId: LayerId)(implicit pc: Case[PolyCombine.type, PolyCombine.In[K, V, M]]) = {
@@ -71,7 +70,7 @@ abstract class TestEnvironment[
   }
 
   def ingest(implicit pi: Case[PolyIngest.type, PolyIngest.In[K, I, V]]): Unit =
-    ingest(layerName, jConfig.ingestOptions.keyIndexMethod.getKeyIndexMethod[K], jConfig.ingestOptions.layoutScheme)
+    ingest(layerName, jConfig.ingestOptions.keyIndexMethod.getKeyIndexMethod[K], jConfig.ingestOptions)
 
   def combine(implicit pc: Case[PolyCombine.type, PolyCombine.In[K, V, M]]): Unit = combine(layerId)
 
