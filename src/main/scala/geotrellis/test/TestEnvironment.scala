@@ -11,6 +11,7 @@ import geotrellis.spark.tiling.TilerKeyMethods
 import geotrellis.spark._
 import geotrellis.util.{Component, SparkSupport}
 import geotrellis.vector.{Extent, ProjectedExtent}
+
 import org.apache.spark.rdd.RDD
 import org.joda.time.DateTime
 import spray.json.JsonFormat
@@ -36,7 +37,7 @@ abstract class TestEnvironment[
   val ingestParams      = jConfig.getIngestParams
   val loadCredensials   = jCredensials.getLoad(jConfig)
   val ingestCredensials = jCredensials.getIngest(jConfig)
-  val layerId           = attributeStore.layerIds.filter(_.name == layerName).sortWith(_.zoom > _.zoom).last
+  lazy val layerId      = attributeStore.layerIds.filter(_.name == layerName).sortWith(_.zoom > _.zoom).last
 
   def read(layerId: LayerId, extent: Option[Extent] = None): RDD[(K, V)] with Metadata[M] = {
     logger.info(s"reading ${layerId}...")

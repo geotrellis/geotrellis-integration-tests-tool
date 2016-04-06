@@ -27,7 +27,7 @@ object PolyIngest extends Poly5 {
     K: ClassTag: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat
   ] = at[String, KeyIndexMethod[K], JIngestOptions, RDD[(I, Tile)], LayerWriter[LayerId]] {
     case (layer, keyIndexMethod, jio, loadTiles, writer) =>
-      Ingest[I, K](loadTiles, jio.layoutScheme.getCrs, jio.layoutScheme.getLayoutScheme, resampleMethod = jio.getResampleMethod, pyramid = true) { case (rdd, z) =>
+      Ingest[I, K](loadTiles, jio.layoutScheme.crs, jio.layoutScheme.getLayoutScheme, resampleMethod = jio.resampleMethod, pyramid = true) { case (rdd, z) =>
         if (z > 0) {
           if (rdd.filter(!_._2.isNoDataTile).count < 1) {
             logger.info(s"rdd.filter(!_._2.isNoDataTile).count: ${rdd.filter(!_._2.isNoDataTile).count}")
@@ -44,7 +44,7 @@ object PolyIngest extends Poly5 {
     K: ClassTag: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat
   ] = at[String, KeyIndexMethod[K], JIngestOptions, RDD[(I, MultibandTile)], LayerWriter[LayerId]] {
     case (layer, keyIndexMethod, jio, loadTiles, writer) =>
-      MultibandIngest[I, K](loadTiles, jio.layoutScheme.getCrs, jio.layoutScheme.getLayoutScheme, resampleMethod = jio.getResampleMethod, pyramid = true) { case (rdd, z) =>
+      MultibandIngest[I, K](loadTiles, jio.layoutScheme.crs, jio.layoutScheme.getLayoutScheme, resampleMethod = jio.resampleMethod, pyramid = true) { case (rdd, z) =>
         if (z > 0) {
           if (rdd.filter(!_._2.band(0).isNoDataTile).count < 1) {
             logger.info(s"rdd.filter(!_._2.band(0).isNoDataTile).count: ${rdd.filter(!_._2.band(0).isNoDataTile).count}")
