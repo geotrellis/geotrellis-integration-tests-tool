@@ -11,24 +11,24 @@ import io.circe.parser._
 import scala.util.matching.Regex
 
 case class JConfig(name: String, `type`: JType, path: JPath, ingestOptions: JIngestOptions, validationOptions: JValidationOptions) {
-  def getInputParams(str: String, p: String) = str match {
-    case "s3" => {
+  def getInputParams(jbt: JBackendType, p: String) = jbt match {
+    case JS3Type => {
       val JConfig.S3UrlRx(_, _, bucket, prefix) = p
       Map("bucket" -> bucket, "key" -> prefix)
     }
-    case "accumulo"        => Map("table" -> p)
-    case "hadoop" | "file" => Map("path" -> p)
+    case JAccumuloType           => Map("table" -> p)
+    case JHadoopType | JFileType => Map("path" -> p)
   }
 
   def getLoadParams     = getInputParams(`type`.loadBackend, path.load)
   def getIngestParams   = getInputParams(`type`.ingestBackend, path.ingest)
-  def isTemporal        = `type`.ingestType == "temporal"
-  def isSpatial         = `type`.ingestType == "spatial"
-  def isSingleband      = `type`.tileType == "singleband"
-  def isMultiband       = `type`.tileType == "multiband"
-  def isS3Load          = `type`.loadBackend == "s3"
-  def isHadoopLoad      = `type`.loadBackend == "hadoop"
-  def isForIngestBackend(str: String) = str == `type`.ingestBackend
+  def isTemporal        = `type`.ingestType == JTemporalType
+  def isSpatial         = `type`.ingestType == JSpatialType
+  def isSingleband      = `type`.tileType == JSinglebandType
+  def isMultiband       = `type`.tileType == JMultibandType
+  def isS3Load          = `type`.loadBackend == JS3Type
+  def isHadoopLoad      = `type`.loadBackend == JHadoopType
+  def isForIngestBackend(jbt: JBackendType) = jbt == `type`.ingestBackend
 }
 
 object JConfig {
@@ -41,6 +41,24 @@ object JConfig {
   implicit val decodeCrs: Decoder[CRS] = Decoder.instance { cursor =>
     cursor.as[String].flatMap {
       case crs => Xor.right(CRS.fromName(crs))
+    }
+  }
+
+  implicit val decodeJBackendType: Decoder[JBackendType] = Decoder.instance { cursor =>
+    cursor.as[String].flatMap {
+      case jbt => Xor.right(JBackendType.fromName(jbt))
+    }
+  }
+
+  implicit val decodeJIngestType: Decoder[JIngestType] = Decoder.instance { cursor =>
+    cursor.as[String].flatMap {
+      case jit => Xor.right(JIngestType.fromName(jit))
+    }
+  }
+
+  implicit val decodeJTileType: Decoder[JTileType] = Decoder.instance { cursor =>
+    cursor.as[String].flatMap {
+      case jtt => Xor.right(JTileType.fromName(jtt))
     }
   }
 

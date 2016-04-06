@@ -1,6 +1,6 @@
 package geotrellis.test
 
-import geotrellis.config.json.backend.JCredensials
+import geotrellis.config.json.backend.JCredentials
 import geotrellis.config.json.dataset.JConfig
 import geotrellis.raster.CellGrid
 import geotrellis.spark._
@@ -19,7 +19,7 @@ abstract class HadoopTest[
   I: ClassTag: ? => TilerKeyMethods[I, K]: Component[?, ProjectedExtent],
   K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag,
   V <: CellGrid: AvroRecordCodec: ClassTag
-](jConfig: JConfig, jCredensials: JCredensials) extends TestEnvironment[I, K, V](jConfig, jCredensials) with HadoopSupport {
+](jConfig: JConfig, jCredentials: JCredentials) extends TestEnvironment[I, K, V](jConfig, jCredentials) with HadoopSupport {
   @transient lazy val writer = HadoopLayerWriter(new Path(hadoopIngestPath))
   @transient lazy val reader = HadoopLayerReader(new Path(hadoopIngestPath))
   @transient lazy val attributeStore = HadoopAttributeStore(hadoopIngestPath)

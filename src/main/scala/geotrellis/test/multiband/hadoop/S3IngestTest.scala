@@ -1,6 +1,6 @@
 package geotrellis.test.multiband.hadoop
 
-import geotrellis.config.json.backend.JCredensials
+import geotrellis.config.json.backend.JCredentials
 import geotrellis.raster.MultibandTile
 import geotrellis.spark._
 import geotrellis.spark.io._
@@ -12,10 +12,10 @@ import geotrellis.util.S3Support
 
 import org.apache.spark.SparkContext
 
-abstract class S3IngestTest(jConfig: JConfig, jCredensials: JCredensials) extends HadoopTest[ProjectedExtent, SpatialKey, MultibandTile](jConfig, jCredensials) with S3Support with S3Load
+abstract class S3IngestTest(jConfig: JConfig, jCredentials: JCredentials) extends HadoopTest[ProjectedExtent, SpatialKey, MultibandTile](jConfig, jCredentials) with S3Support with S3Load
 
 object S3IngestTest {
-  def apply(implicit jConfig: JConfig, jCredensials: JCredensials, _sc: SparkContext) = new S3IngestTest(jConfig, jCredensials) {
+  def apply(implicit jConfig: JConfig, jCredentials: JCredentials, _sc: SparkContext) = new S3IngestTest(jConfig, jCredentials) {
     @transient implicit val sc = _sc
   }
 }

@@ -1,6 +1,6 @@
 package geotrellis.config
 
-import geotrellis.config.json.backend.JCredensials
+import geotrellis.config.json.backend.JCredentials
 import geotrellis.config.json.dataset.JConfig
 
 import org.apache.hadoop.conf.Configuration
@@ -8,7 +8,7 @@ import org.apache.hadoop.fs.Path
 import org.apache.spark.SparkContext
 
 object Config {
-  def credentials(filePath: String)(implicit sc: SparkContext)  = JCredensials.read(getJson(filePath, sc.hadoopConfiguration))
+  def credentials(filePath: String)(implicit sc: SparkContext)  = JCredentials.read(getJson(filePath, sc.hadoopConfiguration))
   def dataset(filePath: String)(implicit sc: SparkContext)      = JConfig.readList(getJson(filePath, sc.hadoopConfiguration))
   def splitDataset(filePath: String)(implicit sc: SparkContext) = Config.splitConfig(dataset(filePath))
 

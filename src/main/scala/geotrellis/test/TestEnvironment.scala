@@ -1,6 +1,6 @@
 package geotrellis.test
 
-import geotrellis.config.json.backend.JCredensials
+import geotrellis.config.json.backend.JCredentials
 import geotrellis.config.json.dataset.{JConfig, JIngestOptions}
 import geotrellis.core.poly.{PolyCombine, PolyIngest, PolyValidate, PolyWrite}
 import geotrellis.raster._
@@ -23,7 +23,7 @@ abstract class TestEnvironment[
   I: ClassTag: ? => TilerKeyMethods[I, K]: Component[?, ProjectedExtent],
   K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag,
   V <: CellGrid: AvroRecordCodec: ClassTag
-](val jConfig: JConfig, val jCredensials: JCredensials) extends SparkSupport with Serializable {
+](val jConfig: JConfig, val jCredentials: JCredentials) extends SparkSupport with Serializable {
   type M = TileLayerMetadata[K]
 
   val writer: LayerWriter[LayerId]
@@ -35,8 +35,8 @@ abstract class TestEnvironment[
   val layerName         = jConfig.name
   val loadParams        = jConfig.getLoadParams
   val ingestParams      = jConfig.getIngestParams
-  val loadCredensials   = jCredensials.getLoad(jConfig)
-  val ingestCredensials = jCredensials.getIngest(jConfig)
+  val loadCredentials   = jCredentials.getLoad(jConfig)
+  val ingestCredentials = jCredentials.getIngest(jConfig)
   lazy val layerId      = attributeStore.layerIds.filter(_.name == layerName).sortWith(_.zoom > _.zoom).last
 
   def read(layerId: LayerId, extent: Option[Extent] = None): RDD[(K, V)] with Metadata[M] = {

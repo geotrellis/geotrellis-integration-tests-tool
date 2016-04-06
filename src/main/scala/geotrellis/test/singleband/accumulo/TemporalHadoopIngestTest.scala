@@ -1,6 +1,6 @@
 package geotrellis.test.singleband.accumulo
 
-import geotrellis.config.json.backend.JCredensials
+import geotrellis.config.json.backend.JCredentials
 import geotrellis.raster.Tile
 import geotrellis.spark._
 import geotrellis.spark.io._
@@ -11,10 +11,10 @@ import geotrellis.util.SparkSupport
 
 import org.apache.spark.SparkContext
 
-abstract class TemporalHadoopIngestTest(jConfig: JConfig, jCredensials: JCredensials) extends AccumuloTest[TemporalProjectedExtent, SpaceTimeKey, Tile](jConfig, jCredensials) with TemporalHadoopLoad
+abstract class TemporalHadoopIngestTest(jConfig: JConfig, jCredentials: JCredentials) extends AccumuloTest[TemporalProjectedExtent, SpaceTimeKey, Tile](jConfig, jCredentials) with TemporalHadoopLoad
 
 object TemporalHadoopIngestTest {
-  def apply(implicit jConfig: JConfig, jCredensials: JCredensials, _sc: SparkContext) = new TemporalHadoopIngestTest(jConfig, jCredensials) {
+  def apply(implicit jConfig: JConfig, jCredentials: JCredentials, _sc: SparkContext) = new TemporalHadoopIngestTest(jConfig, jCredentials) {
     @transient implicit val sc = SparkSupport.configureTime(jConfig)(_sc)
   }
 }

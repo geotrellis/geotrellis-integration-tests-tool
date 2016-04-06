@@ -1,6 +1,6 @@
 package geotrellis.test
 
-import geotrellis.config.json.backend.JCredensials
+import geotrellis.config.json.backend.JCredentials
 import geotrellis.config.json.dataset.JConfig
 import geotrellis.raster.CellGrid
 import geotrellis.spark._
@@ -18,7 +18,7 @@ abstract class AccumuloTest[
   I: ClassTag: ? => TilerKeyMethods[I, K]: Component[?, ProjectedExtent],
   K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag,
   V <: CellGrid: AvroRecordCodec: ClassTag
-](jConfig: JConfig, jCredensials: JCredensials) extends TestEnvironment[I, K, V](jConfig, jCredensials) with AccumuloSupport {
+](jConfig: JConfig, jCredentials: JCredentials) extends TestEnvironment[I, K, V](jConfig, jCredentials) with AccumuloSupport {
   @transient lazy val writer = AccumuloLayerWriter(instance, table)
   @transient lazy val reader = AccumuloLayerReader(instance)
   @transient lazy val attributeStore = AccumuloAttributeStore(instance.connector)

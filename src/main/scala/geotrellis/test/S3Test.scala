@@ -1,6 +1,6 @@
 package geotrellis.test
 
-import geotrellis.config.json.backend.JCredensials
+import geotrellis.config.json.backend.JCredentials
 import geotrellis.config.json.dataset.JConfig
 import geotrellis.raster.CellGrid
 import geotrellis.spark._
@@ -18,7 +18,7 @@ abstract class S3Test[
   I: ClassTag: ? => TilerKeyMethods[I, K]: Component[?, ProjectedExtent],
   K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag,
   V <: CellGrid: AvroRecordCodec: ClassTag
-](jConfig: JConfig, jCredensials: JCredensials) extends TestEnvironment[I, K, V](jConfig, jCredensials) with S3Support {
+](jConfig: JConfig, jCredentials: JCredentials) extends TestEnvironment[I, K, V](jConfig, jCredentials) with S3Support {
   @transient lazy val writer = S3LayerWriter(s3IngestBucket, s3IngestPrefix)
   @transient lazy val reader = S3LayerReader(s3IngestBucket, s3IngestPrefix)
   @transient lazy val attributeStore = S3AttributeStore(s3IngestBucket, s3IngestPrefix)
