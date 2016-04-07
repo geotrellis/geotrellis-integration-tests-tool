@@ -37,7 +37,7 @@ abstract class TestEnvironment[
   val ingestParams      = jConfig.getIngestParams
   val loadCredentials   = jCredentials.getLoad(jConfig)
   val ingestCredentials = jCredentials.getIngest(jConfig)
-  lazy val layerId      = attributeStore.layerIds.filter(_.name == layerName).sortWith(_.zoom > _.zoom).last
+  lazy val layerId      = attributeStore.layerIds.filter(_.name == layerName).sortWith(_.zoom > _.zoom).head
 
   def read(layerId: LayerId, extent: Option[Extent] = None): RDD[(K, V)] with Metadata[M] = {
     logger.info(s"reading ${layerId}...")

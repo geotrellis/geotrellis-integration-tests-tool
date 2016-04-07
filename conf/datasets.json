@@ -1,6 +1,6 @@
 [
   {
-    "name":"nex",
+    "name":"nexspatial",
     "type":{
       "ingestCredentials":"gis",
       "loadBackend":"hadoop",
@@ -13,7 +13,7 @@
       "ingest":"gtintegration"
     },
     "ingestOptions":{
-      "resampleMethod":"bilinear",
+      "resampleMethod":"nearest-neighbor",
       "layoutScheme":{
         "type":"zoomed",
         "crs":"EPSG:3857",
@@ -32,7 +32,7 @@
     }
   },
   {
-    "name":"nex",
+    "name":"nextemporal",
     "type":{
       "ingestCredentials":"gis",
       "loadBackend":"hadoop",
@@ -42,7 +42,7 @@
     },
     "path":{
       "load":"/geotrellis-integration-load/",
-      "ingest":"gtintegration"
+      "ingest":"gtintegrationtemporal"
     },
     "ingestOptions":{
       "resampleMethod":"bilinear",
