@@ -24,7 +24,7 @@ resolvers ++= Seq(
 )
 
 val gtVersion    = "0.10.0-RC4"
-val circeVersion = "0.4.0"
+val circeVersion = "0.4.1"
 
 val geotrellis = Seq(
   "com.azavea.geotrellis" %% "geotrellis-accumulo"  % gtVersion,
