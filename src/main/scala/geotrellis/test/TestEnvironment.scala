@@ -2,20 +2,21 @@ package geotrellis.test
 
 import geotrellis.config.json.backend.JCredentials
 import geotrellis.config.json.dataset.{JConfig, JIngestOptions}
-import geotrellis.core.poly.{PolyCombine, PolyIngest, PolyValidate, PolyWrite}
+import geotrellis.core.poly._
+import geotrellis.proj4.Transform
 import geotrellis.raster._
 import geotrellis.spark.io._
 import geotrellis.spark.io.avro.AvroRecordCodec
 import geotrellis.spark.io.index.KeyIndexMethod
 import geotrellis.spark.tiling.TilerKeyMethods
 import geotrellis.spark._
-import geotrellis.util.{Component, SparkSupport}
+import geotrellis.util._
 import geotrellis.vector.{Extent, ProjectedExtent}
-
 import org.apache.spark.rdd.RDD
 import org.joda.time.DateTime
 import spray.json.JsonFormat
 import shapeless.poly._
+import spire.syntax.cfor._
 
 import scala.reflect.ClassTag
 
@@ -74,6 +75,40 @@ abstract class TestEnvironment[
     ingest(layerName, jConfig.ingestOptions.keyIndexMethod.getKeyIndexMethod[K], jConfig.ingestOptions)
 
   def combine(implicit pc: Case[PolyCombine.type, PolyCombine.In[K, V, M]]): Unit = combine(layerId)
+
+  // Should we provide input layer extent?
+  def newValidate(implicit pa: Case[PolyAssert.type, PolyAssert.In[V]]): Unit = newValidate(loadTiles, read(layerId, None))
+
+  def newValidate(input: RDD[(I, V)], ingested: RDD[(K, V)] with Metadata[M])
+                 (implicit pa: Case[PolyAssert.type, PolyAssert.In[V]]): Unit = {
+
+    val threshold = jConfig.validationOptions.resolutionThreshold
+    val md = ingested.metadata
+    val fullExtent = md.extent
+    val validationExtent = fullExtent // TODO: generate rnd basing on some validationExtentSize in dataset configuration
+    val ingestedTiles = ingested.asRasters.filter(_._2.extent.intersects(validationExtent)).collect
+    val inputTiles =
+      input
+        .map { case (key, value) => (key.extent.reproject(key.getComponent[ProjectedExtent].crs, md.crs), (key, value)) }
+        .filter(_._1.intersects(validationExtent))
+        .collect
+
+    for((_, ingestedRaster) <- ingestedTiles) {
+      for((_, (ProjectedExtent(extent, crs), tile)) <- inputTiles.filter { case (reprojectedExtent, (projectedExtent, tile)) => reprojectedExtent.intersects(ingestedRaster.extent) }) {
+        val transform = Transform(md.crs, crs)
+        val inputRasterExtent = RasterExtent(extent, tile.cols, tile.rows)
+        cfor(0)(_ < ingestedRaster.tile.cols, _ + 1) { icol =>
+          cfor(0)(_ < ingestedRaster.tile.rows, _ + 1) { irow =>
+            val (x, y) = ingestedRaster.rasterExtent.gridToMap(icol, irow)
+            val (rx, ry) = transform(x, y)
+            val (col, row) = inputRasterExtent.mapToGrid(rx, ry)
+
+            PolyAssert((ingestedRaster.tile, tile), ((icol, irow), (col, row)), threshold)
+          }
+        }
+      }
+    }
+  }
 
   def validate(dt: Option[DateTime])
               (implicit pv: Case.Aux[PolyValidate.type, PolyValidate.In[K, V, M], PolyValidate.Out[V]],
