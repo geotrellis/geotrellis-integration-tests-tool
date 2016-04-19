@@ -22,9 +22,9 @@ import scala.reflect.ClassTag
 
 abstract class TestEnvironment[
   I: ClassTag: ? => TilerKeyMethods[I, K]: Component[?, ProjectedExtent],
-  K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag,
+  K: SpatialComponent: Boundable: AvroRecordCodec: ClassTag,
   V <: CellGrid: AvroRecordCodec: ClassTag
-](val jConfig: JConfig, val jCredentials: JCredentials) extends SparkSupport with Serializable {
+](@transient val jConfig: JConfig, val jCredentials: JCredentials)(implicit @transient kf: JsonFormat[K]) extends SparkSupport with Serializable {
   type M = TileLayerMetadata[K]
 
   val writer: LayerWriter[LayerId]
@@ -123,5 +123,6 @@ abstract class TestEnvironment[
                    pc: Case[PolyCombine.type, PolyCombine.In[K, V, M]],
                    pv: Case.Aux[PolyValidate.type, PolyValidate.In[K, V, M], PolyValidate.Out[V]],
                    rw: Case[PolyWrite.type, PolyWrite.In[Option, V]],
-                   lw: Case[PolyWrite.type, PolyWrite.In[List, V]]) = { ingest; combine; validate }
+                   lw: Case[PolyWrite.type, PolyWrite.In[List, V]],
+                   pa: Case[PolyAssert.type, PolyAssert.In[V]]) = { ingest; combine; validate/*; newValidate*/ }
 }
