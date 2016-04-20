@@ -26,6 +26,12 @@ trait Implicits {
     }
   }
 
+  implicit val decodeJBackendLoadType: Decoder[JBackendLoadType] = Decoder.instance { cursor =>
+    cursor.as[String].flatMap {
+      case jbt => Xor.right(JBackendType.fromNameLoad(jbt))
+    }
+  }
+
   implicit val decodeJIngestType: Decoder[JIngestType] = Decoder.instance { cursor =>
     cursor.as[String].flatMap {
       case jit => Xor.right(JIngestType.fromName(jit))
