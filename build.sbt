@@ -23,7 +23,7 @@ resolvers ++= Seq(
   Resolver.sonatypeRepo("releases")
 )
 
-val gtVersion    = "0.10.0-RC4"
+val gtVersion    = "0.10.0"
 val circeVersion = "0.4.1"
 
 val geotrellis = Seq(
