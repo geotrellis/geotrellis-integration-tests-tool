@@ -65,7 +65,7 @@ abstract class TestEnvironment[
                         lw: Case[PolyWrite.type, PolyWrite.In[List, V]]): Unit = {
     val metadata = attributeStore.readMetadata[TileLayerMetadata[K]](layerId)
     val (ingestedRaster, expectedRasterResampled, diffRasters) =
-      PolyValidate(metadata, jConfig.validationOptions.tiffLocal, layerId, dt, read _)
+      PolyValidate(metadata, jConfig, layerId, dt, read _)
 
     PolyWrite(ingestedRaster, s"${jConfig.validationOptions.tmpDir}ingested.${this.getClass.getName}")
     PolyWrite(expectedRasterResampled, s"${jConfig.validationOptions.tmpDir}expected.${this.getClass.getName}")
