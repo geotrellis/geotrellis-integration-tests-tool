@@ -5,14 +5,15 @@ import geotrellis.config.json.dataset.{JConfig, JIngestOptions}
 import geotrellis.core.poly._
 import geotrellis.proj4.Transform
 import geotrellis.raster._
-import geotrellis.raster.resample.{NearestNeighbor, Resample}
 import geotrellis.spark.io._
 import geotrellis.spark.io.avro.AvroRecordCodec
 import geotrellis.spark.io.index.KeyIndexMethod
 import geotrellis.spark.tiling.TilerKeyMethods
 import geotrellis.spark._
+import geotrellis.test.validation.ValidationUtilities
 import geotrellis.util._
 import geotrellis.vector.{Extent, ProjectedExtent}
+
 import org.apache.spark.rdd.RDD
 import org.joda.time.DateTime
 import spray.json.JsonFormat
@@ -25,7 +26,7 @@ abstract class TestEnvironment[
   I: ClassTag: ? => TilerKeyMethods[I, K]: Component[?, ProjectedExtent],
   K: SpatialComponent: Boundable: AvroRecordCodec: ClassTag,
   V <: CellGrid: AvroRecordCodec: ClassTag
-](@transient val jConfig: JConfig, val jCredentials: JCredentials)(implicit @transient kf: JsonFormat[K]) extends SparkSupport with Serializable {
+](@transient val jConfig: JConfig, val jCredentials: JCredentials)(implicit @transient kf: JsonFormat[K]) extends SparkSupport with ValidationUtilities with Serializable {
   type M = TileLayerMetadata[K]
 
   val writer: LayerWriter[LayerId]
@@ -77,7 +78,6 @@ abstract class TestEnvironment[
 
   def combine(implicit pc: Case[PolyCombine.type, PolyCombine.In[K, V, M]]): Unit = combine(layerId)
 
-  // Should we provide input layer extent?
   def newValidate(implicit pa: Case.Aux[PolyAssert.type, PolyAssert.In[V], PolyAssert.Out]): Unit = newValidate(loadTiles, read(layerId, None))
 
   def newValidate(input: RDD[(I, V)], ingested: RDD[(K, V)] with Metadata[M])
@@ -85,8 +85,7 @@ abstract class TestEnvironment[
 
     val threshold = jConfig.validationOptions.resolutionThreshold
     val md = ingested.metadata
-    val fullExtent = md.extent
-    val validationExtent = fullExtent // TODO: generate rnd basing on some validationExtentSize in dataset configuration
+    val validationExtent = randomExtentWithin(md.extent, jConfig.validationOptions.sampleScale)
     val ingestedTiles = ingested.asRasters.filter(_._2.extent.intersects(validationExtent)).collect
     val inputTiles =
       input
