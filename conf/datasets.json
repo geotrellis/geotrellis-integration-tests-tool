@@ -25,7 +25,7 @@
       }
     },
     "validationOptions":{
-      "extentSize":0.3,
+      "sampleScale":0.3,
       "resolutionThreshold":0.1,
       "tmpDir":"/data/tmp/",
       "tiffLocal":"/data/tmp/tasmax_amon_BCSD_rcp26_r1i1p1_CONUS_CCSM4_200601-201012-200601120000_0_0.tif"
@@ -57,7 +57,7 @@
       }
     },
     "validationOptions":{
-      "extentSize":0.3,
+      "sampleScale":0.3,
       "resolutionThreshold":0.1,
       "tmpDir":"/data/tmp/",
       "tiffLocal":"/data/tmp/tasmax_amon_BCSD_rcp26_r1i1p1_CONUS_CCSM4_200601-201012-200601120000_0_0.tif"
@@ -92,7 +92,7 @@
       }
     },
     "validationOptions":{
-      "extentSize":0.3,
+      "sampleScale":0.3,
       "resolutionThreshold":0.1,
       "dateTime":"2006-01-16T12:00:00",
       "tmpDir":"/data/tmp/",
