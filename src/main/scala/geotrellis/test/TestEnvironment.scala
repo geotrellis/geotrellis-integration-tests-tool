@@ -5,6 +5,7 @@ import geotrellis.config.json.dataset.{JConfig, JIngestOptions}
 import geotrellis.core.poly._
 import geotrellis.proj4.Transform
 import geotrellis.raster._
+import geotrellis.raster.resample.{NearestNeighbor, Resample}
 import geotrellis.spark.io._
 import geotrellis.spark.io.avro.AvroRecordCodec
 import geotrellis.spark.io.index.KeyIndexMethod
@@ -77,10 +78,10 @@ abstract class TestEnvironment[
   def combine(implicit pc: Case[PolyCombine.type, PolyCombine.In[K, V, M]]): Unit = combine(layerId)
 
   // Should we provide input layer extent?
-  def newValidate(implicit pa: Case[PolyAssert.type, PolyAssert.In[V]]): Unit = newValidate(loadTiles, read(layerId, None))
+  def newValidate(implicit pa: Case.Aux[PolyAssert.type, PolyAssert.In[V], PolyAssert.Out]): Unit = newValidate(loadTiles, read(layerId, None))
 
   def newValidate(input: RDD[(I, V)], ingested: RDD[(K, V)] with Metadata[M])
-                 (implicit pa: Case[PolyAssert.type, PolyAssert.In[V]]): Unit = {
+                 (implicit pa: Case.Aux[PolyAssert.type, PolyAssert.In[V], PolyAssert.Out]): Unit = {
 
     val threshold = jConfig.validationOptions.resolutionThreshold
     val md = ingested.metadata
@@ -93,6 +94,12 @@ abstract class TestEnvironment[
         .filter(_._1.intersects(validationExtent))
         .collect
 
+    var nansCount  = 0
+    var deltaSum   = 0d
+    var goodsCount = 0
+    var badsCount  = 0
+    var cellsCount = 0
+
     for((_, ingestedRaster) <- ingestedTiles) {
       for((_, (ProjectedExtent(extent, crs), tile)) <- inputTiles.filter { case (reprojectedExtent, (projectedExtent, tile)) => reprojectedExtent.intersects(ingestedRaster.extent) }) {
         val transform = Transform(md.crs, crs)
@@ -103,11 +110,35 @@ abstract class TestEnvironment[
             val (rx, ry) = transform(x, y)
             val (col, row) = inputRasterExtent.mapToGrid(rx, ry)
 
-            PolyAssert((ingestedRaster.tile, tile), ((icol, irow), (col, row)), threshold)
+            if(extent.contains(rx, ry)) {
+              val (isNaN, delta, result) = PolyAssert((ingestedRaster.tile, tile), ((icol, irow), (col, row)), threshold)
+              logger.debug(s"(isNaN, delta, result): ${(isNaN, delta, result)}")
+              cellsCount += 1
+              deltaSum += delta
+              if(isNaN) { nansCount += 1; goodsCount += 1 }
+              else {
+                if(result) goodsCount += 1
+                else badsCount += 1
+              }
+            }
           }
         }
       }
     }
+
+    val avgDelta = deltaSum / cellsCount
+    val success  = avgDelta < threshold
+    logger.info(s"threshold: ${threshold}")
+    logger.info(s"Cells count: ${cellsCount}")
+    logger.info(s"NaNs count: ${nansCount}")
+    logger.info(s"deltaSum: ${deltaSum}")
+    logger.info(s"Goods count: ${goodsCount}")
+    logger.info(s"Bads count: ${badsCount}")
+    logger.info(s"NaNs per cell: ${nansCount / cellsCount}")
+    logger.info(s"Average delta: ${avgDelta}")
+    logger.info(s"Average delta < threshold: ${success}")
+    if(success) logger.info(s"New validation test success")
+    else logger.error(s"New validation test failed")
   }
 
   def validate(dt: Option[DateTime])
@@ -124,5 +155,5 @@ abstract class TestEnvironment[
                    pv: Case.Aux[PolyValidate.type, PolyValidate.In[K, V, M], PolyValidate.Out[V]],
                    rw: Case[PolyWrite.type, PolyWrite.In[Option, V]],
                    lw: Case[PolyWrite.type, PolyWrite.In[List, V]],
-                   pa: Case[PolyAssert.type, PolyAssert.In[V]]) = { ingest; combine; validate/*; newValidate*/ }
+                   pa: Case.Aux[PolyAssert.type, PolyAssert.In[V], PolyAssert.Out]) = { ingest; combine; validate; newValidate }
 }
