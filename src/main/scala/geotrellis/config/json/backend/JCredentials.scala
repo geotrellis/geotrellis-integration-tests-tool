@@ -1,19 +1,24 @@
 package geotrellis.config.json.backend
 
-import cats.data.Xor
 import geotrellis.config.json.dataset._
+
+import cats.data.Xor
 import io.circe.generic.auto._
 import io.circe.parser._
 
-case class JCredentials(accumulo: List[JAccumulo], s3: List[JS3], hadoop: List[JHadoop]) extends JBackend {
-  def getAccumuloCfgs = accumulo.map(e => e.name -> e).toMap
-  def getS3Cfgs       = s3.map(e => e.name -> e).toMap
-  def getHadoopCfgs   = hadoop.map(e => e.name -> e).toMap
+case class JCredentials(accumulo: List[JAccumulo], cassandra: List[JCassandra], s3: List[JS3], hadoop: List[JHadoop]) {
+  private def getCfgs[T <: JBackend](b: List[T]) = b.map(e => e.name -> e).toMap
+
+  def getAccumuloCfgs  = getCfgs(accumulo)
+  def getCassandraCfgs = getCfgs(cassandra)
+  def getS3Cfgs        = getCfgs(s3)
+  def getHadoopCfgs    = getCfgs(hadoop)
 
   def get(backend: JBackendType, credentials: Option[String]) =
     credentials.map((backend match {
       case JS3Type                 => getS3Cfgs
       case JAccumuloType           => getAccumuloCfgs
+      case JCassandraType          => getCassandraCfgs
       case JHadoopType | JFileType => getHadoopCfgs
     })(_))
 
