@@ -50,7 +50,7 @@ abstract class TestEnvironment[
   def ingest(layer: String, keyIndexMethod: KeyIndexMethod[K], jio: JIngestOptions)
             (implicit pi: Case[PolyIngest.type, PolyIngest.In[K, I, V]]): Unit = {
     conf.set("io.map.index.interval", "1")
-    logger.info(s"ingesting tiles into accumulo (${layer})...")
+    logger.info(s"ingesting tiles into ${jConfig.`type`.ingestBackend} (${layer})...")
     PolyIngest(layer, keyIndexMethod, jio, loadTiles, writer)
   }
 
@@ -154,5 +154,8 @@ abstract class TestEnvironment[
                    pv: Case.Aux[PolyValidate.type, PolyValidate.In[K, V, M], PolyValidate.Out[V]],
                    rw: Case[PolyWrite.type, PolyWrite.In[Option, V]],
                    lw: Case[PolyWrite.type, PolyWrite.In[List, V]],
-                   pa: Case.Aux[PolyAssert.type, PolyAssert.In[V], PolyAssert.Out]) = { ingest; combine; validate; newValidate }
+                   pa: Case.Aux[PolyAssert.type, PolyAssert.In[V], PolyAssert.Out]) = { beforeAll; ingest; combine; validate; newValidate; afterAll }
+
+  def beforeAll: Unit = { }
+  def afterAll: Unit = { }
 }

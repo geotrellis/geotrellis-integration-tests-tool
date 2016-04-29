@@ -22,4 +22,6 @@ abstract class CassandraTest[
   @transient lazy val writer = CassandraLayerWriter(instance, table)
   @transient lazy val reader = CassandraLayerReader(instance)
   @transient lazy val attributeStore = CassandraAttributeStore(instance)
+
+  override def afterAll = instance.closeAsync
 }
