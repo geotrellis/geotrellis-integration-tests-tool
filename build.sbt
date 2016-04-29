@@ -41,11 +41,11 @@ val circe = Seq(
 )
 
 libraryDependencies ++= Seq(
-  "com.github.scopt"      %% "scopt"         % "3.4.0",
-  "com.chuusai"           %% "shapeless"     % "2.3.0",
-  "org.apache.spark"      %% "spark-core"    % "1.5.2" % "provided",
-  "org.apache.hadoop"      % "hadoop-client" % "2.7.1" % "provided",
-  "org.scalatest"         %% "scalatest"     % "2.2.0" % "test"
+  "com.github.scopt"   %% "scopt"        % "3.4.0",
+  "com.chuusai"        %% "shapeless"    % "2.3.0",
+  "org.apache.spark"   %% "spark-core"   % "1.5.2" % "provided",
+  "org.apache.hadoop"  % "hadoop-client" % "2.7.1" % "provided",
+  "org.scalatest"     %% "scalatest"     % "2.2.0" % "test"
 ) ++ geotrellis ++ circe
 
 addCompilerPlugin("org.spire-math" % "kind-projector" % "0.7.1" cross CrossVersion.binary)

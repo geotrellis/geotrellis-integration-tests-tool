@@ -5,7 +5,7 @@ import geotrellis.spark.io.cassandra.BaseCassandraInstance
 
 trait CassandraSupport extends BackendSupport {
   lazy val table = ingestParams("table")
-  @transient lazy val instance = ingestCredentials.map { case credentials: JCassandra =>
+  @transient lazy val instance = ingestCredentials.collect { case credentials: JCassandra =>
     BaseCassandraInstance(
       credentials.hosts,
       credentials.keyspace,
