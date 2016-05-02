@@ -8,7 +8,7 @@ spark-submit ${PWD}/target/scala-2.10/geotrellis-integration-tests-assembly-0.1.
              --credentials "file://${PWD}/conf/credentials.json"
 ```
 
-Run with custom env variables (in this case with S3Appender)
+Run with custom environment variables (in this case with S3Appender)
 
 ```bash
 spark-submit --conf spark.driver.extraJavaOptions="-Dlog4j.configuration=file://${PWD}/conf/log4j.properties" \
