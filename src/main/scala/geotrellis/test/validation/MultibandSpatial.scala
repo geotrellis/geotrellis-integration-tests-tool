@@ -1,31 +1,29 @@
 package geotrellis.test.validation
 
-import geotrellis.core.spark._
 import geotrellis.raster._
-import geotrellis.raster.io.geotiff.{MultibandGeoTiff, SinglebandGeoTiff}
+import geotrellis.raster.io.geotiff.MultibandGeoTiff
 import geotrellis.spark._
 import geotrellis.spark.io._
 import geotrellis.proj4._
 import geotrellis.vector.Extent
-import geotrellis.core.poly._
 import geotrellis.config.json.dataset.JConfig
+import geotrellis.util.{Colors, LoggingSummary}
 
-import org.apache.spark.rdd.RDD
 import org.joda.time.DateTime
-import org.slf4j.{Logger, LoggerFactory}
+import org.apache.log4j.Logger
 
 import scala.math._
 
-
-object MultibandSpatial extends ValidationUtilities {
-  @transient lazy val logger: Logger = LoggerFactory.getLogger(this.getClass)
+object MultibandSpatial extends ValidationUtilities with LoggingSummary {
+  @transient lazy val logger: Logger = Logger.getLogger(this.getClass)
 
   def sizeAndEquality(
     metadata: TileLayerMetadata[SpatialKey],
     jConfig: JConfig,
     layerId: LayerId,
     dt: Option[DateTime],
-    read: (LayerId, Option[Extent]) => MultibandTileLayerRDD[SpatialKey]
+    read: (LayerId, Option[Extent]) => MultibandTileLayerRDD[SpatialKey],
+    logId: String
   ) = {
     val expected = MultibandGeoTiff(jConfig.validationOptions.tiffLocal)
     val expectedRaster = expected.raster.reproject(expected.crs, metadata.crs)
@@ -35,6 +33,8 @@ object MultibandSpatial extends ValidationUtilities {
         .stitch
         .crop(expectedRaster.extent)
 
+    val infoAppender = appendLog(logId) _
+
     val expectedRasterResampled = expectedRaster.resample(ingestedRaster.rasterExtent)
     val diffRasterList: List[Raster[MultibandTile]] = (0 to expectedRaster.bandCount).map { i =>
       val diffArr =
@@ -43,11 +43,11 @@ object MultibandSpatial extends ValidationUtilities {
           .zip(expectedRasterResampled.band(i).toArray)
           .map { case (v1, v2) => v1 - v2 }
       val diffRaster = Raster(ArrayTile(diffArr, ingestedRaster.cols, ingestedRaster.rows), ingestedRaster.extent)
-      logger.info(s"band($i) validation: ${ingestedRaster.band(i).toArray().sameElements(expectedRasterResampled.band(i).toArray())}")
+      infoAppender(s"band($i) validation: ${ingestedRaster.band(i).toArray().sameElements(expectedRasterResampled.band(i).toArray())}")
       Raster(ArrayMultibandTile(diffRaster.tile), diffRaster.extent)
     }.toList
 
-    logger.info(s"validation.size.eq: ${ingestedRaster.tile.size == expectedRasterResampled.tile.size}")
+    infoAppender(s"validation.size.eq: ${ingestedRaster.tile.size == expectedRasterResampled.tile.size}")
 
     (Option(ingestedRaster), Option(expectedRasterResampled), diffRasterList)
   }
@@ -57,7 +57,8 @@ object MultibandSpatial extends ValidationUtilities {
       jConfig: JConfig,
       layerId: LayerId,
       dt: Option[DateTime],
-      read: (LayerId, Option[Extent]) => MultibandTileLayerRDD[SpatialKey]
+      read: (LayerId, Option[Extent]) => MultibandTileLayerRDD[SpatialKey],
+      logId: String
   ) {
     // The basic steps:
     // 1. establish test parameters
@@ -131,12 +132,15 @@ object MultibandSpatial extends ValidationUtilities {
           }
         }
       }
-      logger.info(s"Resample correctness band ${band + 1}")
-      if (outOfBoundsCount > 0) logger.warn(s"Index out of bounds errors encounted: $outOfBoundsCount exceptions")
-      logger.info(s"Control tile range: ${maxControl - minControl}; test tile range: ${maxTest - minTest}")
-      logger.info(s"Cells counted: $cellCount; total difference: $diffTotal; difference/cell: ${diffTotal/cellCount}")
-      logger.info(s"Cells counted: $cellCount; NaN differences encountered: $nanCount; percent NaN differences: ${(nanCount.toDouble/cellCount)*100}")
-      logger.info(s"validation.resample.similar: ${(diffTotal/cellCount) < diffThreshold}")
+
+      val infoAppender = appendLog(logId) _
+      val warnAppender = appendLog(logId, Colors.yellow(_)) _
+      infoAppender(s"Resample correctness band ${band + 1}")
+      if (outOfBoundsCount > 0) warnAppender(s"Index out of bounds errors encounted: $outOfBoundsCount exceptions")
+      infoAppender(s"Control tile range: ${maxControl - minControl}; test tile range: ${maxTest - minTest}")
+      infoAppender(s"Cells counted: $cellCount; total difference: $diffTotal; difference/cell: ${diffTotal/cellCount}")
+      infoAppender(s"Cells counted: $cellCount; NaN differences encountered: $nanCount; percent NaN differences: ${(nanCount.toDouble/cellCount)*100}")
+      infoAppender(s"validation.resample.similar: ${(diffTotal/cellCount) < diffThreshold}")
     }
   }
 }

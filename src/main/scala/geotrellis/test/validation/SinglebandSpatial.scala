@@ -1,32 +1,29 @@
 package geotrellis.test.validation
 
-import geotrellis.core.spark._
 import geotrellis.raster._
-import geotrellis.raster.summary._
-import geotrellis.raster.io.geotiff.{MultibandGeoTiff, SinglebandGeoTiff}
+import geotrellis.raster.io.geotiff.SinglebandGeoTiff
 import geotrellis.spark._
 import geotrellis.spark.io._
 import geotrellis.proj4._
 import geotrellis.vector.Extent
-import geotrellis.core.poly._
 import geotrellis.config.json.dataset.JConfig
+import geotrellis.util.{Colors, LoggingSummary}
 
-import org.apache.spark.rdd.RDD
 import org.joda.time.DateTime
-import org.slf4j.{Logger, LoggerFactory}
+import org.apache.log4j.Logger
 
 import scala.math._
 
-
-object SinglebandSpatial extends ValidationUtilities {
-  @transient lazy val logger: Logger = LoggerFactory.getLogger(this.getClass)
+object SinglebandSpatial extends ValidationUtilities with LoggingSummary {
+  @transient lazy val logger: Logger = Logger.getLogger(this.getClass)
 
   def sizeAndEquality(
     metadata: TileLayerMetadata[SpatialKey],
     jConfig: JConfig,
     layerId: LayerId,
     dt: Option[DateTime],
-    read: (LayerId, Option[Extent]) => TileLayerRDD[SpatialKey]
+    read: (LayerId, Option[Extent]) => TileLayerRDD[SpatialKey],
+    logId: String
   ) = {
     val expected = SinglebandGeoTiff(jConfig.validationOptions.tiffLocal)
     val expectedRaster = expected.raster.reproject(expected.crs, metadata.crs)
@@ -44,9 +41,10 @@ object SinglebandSpatial extends ValidationUtilities {
         .map { case (v1, v2) => v1 - v2 }
     val diffRaster: Raster[Tile] = Raster(ArrayTile(diffArr, ingestedRaster.cols, ingestedRaster.rows), ingestedRaster.extent)
 
-    logger.info(s"Size and equality validation")
-    logger.info(s"validation.size.eq: ${ingestedRaster.tile.size == expectedRasterResampled.tile.size}")
-    logger.info(s"validation: ${ingestedRaster.tile.toArray().sameElements(expectedRasterResampled.tile.toArray())}")
+    val infoAppender = appendLog(logId) _
+    infoAppender(s"Size and equality validation:")
+    infoAppender(s"validation.size.eq: ${ingestedRaster.tile.size == expectedRasterResampled.tile.size}")
+    infoAppender(s"validation: ${ingestedRaster.tile.toArray().sameElements(expectedRasterResampled.tile.toArray())}")
     (Option(ingestedRaster), Option(expectedRasterResampled), List(diffRaster))
   }
 
@@ -55,7 +53,8 @@ object SinglebandSpatial extends ValidationUtilities {
       jConfig: JConfig,
       layerId: LayerId,
       dt: Option[DateTime],
-      read: (LayerId, Option[Extent]) => TileLayerRDD[SpatialKey]
+      read: (LayerId, Option[Extent]) => TileLayerRDD[SpatialKey],
+      logId: String
   ) {
     // The basic steps:
     // 1. establish test parameters
@@ -127,11 +126,13 @@ object SinglebandSpatial extends ValidationUtilities {
         }
       }
     }
-    logger.info(s"Resample correctness")
-    if (outOfBoundsCount > 0) logger.warn(s"Index out of bounds errors encounted: $outOfBoundsCount exceptions")
-    logger.info(s"Control tile range: ${maxControl - minControl}; test tile range: ${maxTest - minTest}")
-    logger.info(s"Cells counted: $cellCount; total difference: $diffTotal; difference/cell: ${diffTotal/cellCount}")
-    logger.info(s"Cells counted: $cellCount; NaN differences encountered: $nanCount; percent NaN differences: ${(nanCount.toDouble/cellCount)*100}")
-    logger.info(s"validation.resample.similar: ${(diffTotal/cellCount) < diffThreshold}")
+    val infoAppender = appendLog(logId) _
+    val warnAppender = appendLog(logId, Colors.yellow(_)) _
+    infoAppender(s"Resample correctness")
+    if (outOfBoundsCount > 0) warnAppender(s"Index out of bounds errors encounted: $outOfBoundsCount exceptions")
+    infoAppender(s"Control tile range: ${maxControl - minControl}; test tile range: ${maxTest - minTest}")
+    infoAppender(s"Cells counted: $cellCount; total difference: $diffTotal; difference/cell: ${diffTotal/cellCount}")
+    infoAppender(s"Cells counted: $cellCount; NaN differences encountered: $nanCount; percent NaN differences: ${(nanCount.toDouble/cellCount)*100}")
+    infoAppender(s"validation.resample.similar: ${(diffTotal/cellCount) < diffThreshold}")
   }
 }
