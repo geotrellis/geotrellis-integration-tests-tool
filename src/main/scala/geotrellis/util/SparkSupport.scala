@@ -3,12 +3,11 @@ package geotrellis.util
 import geotrellis.config.json.dataset.JConfig
 import geotrellis.spark.io.hadoop.formats.TemporalGeoTiffInputFormat
 import geotrellis.spark.util.SparkUtils
-
 import org.apache.spark.{SparkConf, SparkContext}
-import org.slf4j.{Logger, LoggerFactory}
+import org.apache.log4j.Logger
 
 trait SparkSupport {
-  @transient lazy val logger: Logger = LoggerFactory.getLogger(this.getClass)
+  @transient lazy val logger: Logger = Logger.getLogger(this.getClass)
 
   @transient implicit val sc: SparkContext
 

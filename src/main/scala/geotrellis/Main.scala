@@ -2,14 +2,16 @@ package geotrellis
 
 import geotrellis.spark.io._
 import geotrellis.test._
-import geotrellis.util.SparkSupport
+import geotrellis.util.{LoggingSummary, SparkSupport}
 import geotrellis.config._
 import geotrellis.cli.MainOptions
 
-import com.typesafe.scalalogging.slf4j.LazyLogging
 import cats.std.all._
+import org.apache.log4j.Logger
 
-object Main extends LazyLogging {
+object Main extends LoggingSummary {
+  @transient lazy val logger: Logger = Logger.getLogger(this.getClass)
+
   def main(args: Array[String]): Unit = {
     MainOptions.parse(args) match {
       case Some(config) => {
@@ -34,6 +36,7 @@ object Main extends LazyLogging {
           multiband.testsTemporal foreach { case (_, get) => get().run }
         }
 
+        printSummary("Generic Summary")
         logger.info("completed")
         sc.stop()
       }
