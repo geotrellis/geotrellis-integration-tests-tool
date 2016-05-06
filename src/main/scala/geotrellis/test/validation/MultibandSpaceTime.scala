@@ -24,8 +24,7 @@ object MultibandSpaceTime extends ValidationUtilities with LoggingSummary {
     jConfig: JConfig,
     layerId: LayerId,
     dt: Option[DateTime],
-    read: (LayerId, Option[Extent]) => MultibandTileLayerRDD[SpaceTimeKey],
-    logId: String
+    read: (LayerId, Option[Extent]) => MultibandTileLayerRDD[SpaceTimeKey]
   ) = {
     val expected = MultibandGeoTiff(jConfig.validationOptions.tiffLocal)
     val expectedRaster = expected.raster.reproject(expected.crs, metadata.crs)
@@ -35,7 +34,7 @@ object MultibandSpaceTime extends ValidationUtilities with LoggingSummary {
         .stitch(dt)
         .crop(expectedRaster.extent)
 
-    val infoAppender = appendLog(logId) _
+    val infoAppender = appendLog(validationLogId(jConfig)) _
 
     val expectedRasterResampled = expectedRaster.resample(ingestedRaster.rasterExtent)
     val diffRasterList: List[Raster[MultibandTile]] = (0 to expectedRaster.bandCount).map { i =>
@@ -59,8 +58,7 @@ object MultibandSpaceTime extends ValidationUtilities with LoggingSummary {
       jConfig: JConfig,
       layerId: LayerId,
       dt: Option[DateTime],
-      read: (LayerId, Option[Extent]) => MultibandTileLayerRDD[SpaceTimeKey],
-      logId: String
+      read: (LayerId, Option[Extent]) => MultibandTileLayerRDD[SpaceTimeKey]
   ) {
     // The basic steps:
     // 1. establish test parameters
@@ -135,8 +133,8 @@ object MultibandSpaceTime extends ValidationUtilities with LoggingSummary {
         }
       }
 
-      val infoAppender = appendLog(logId) _
-      val warnAppender = appendLog(logId, Colors.yellow(_)) _
+      val infoAppender = appendLog(validationLogId(jConfig)) _
+      val warnAppender = appendLog(validationLogId(jConfig), Colors.yellow(_)) _
       infoAppender(s"Resample correctness band ${band + 1}")
       if (outOfBoundsCount > 0) warnAppender(s"Index out of bounds errors encounted: $outOfBoundsCount exceptions")
       infoAppender(s"Control tile range: ${maxControl - minControl}; test tile range: ${maxTest - minTest}")

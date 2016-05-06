@@ -22,8 +22,7 @@ object SinglebandSpatial extends ValidationUtilities with LoggingSummary {
     jConfig: JConfig,
     layerId: LayerId,
     dt: Option[DateTime],
-    read: (LayerId, Option[Extent]) => TileLayerRDD[SpatialKey],
-    logId: String
+    read: (LayerId, Option[Extent]) => TileLayerRDD[SpatialKey]
   ) = {
     val expected = SinglebandGeoTiff(jConfig.validationOptions.tiffLocal)
     val expectedRaster = expected.raster.reproject(expected.crs, metadata.crs)
@@ -41,7 +40,7 @@ object SinglebandSpatial extends ValidationUtilities with LoggingSummary {
         .map { case (v1, v2) => v1 - v2 }
     val diffRaster: Raster[Tile] = Raster(ArrayTile(diffArr, ingestedRaster.cols, ingestedRaster.rows), ingestedRaster.extent)
 
-    val infoAppender = appendLog(logId) _
+    val infoAppender = appendLog(validationLogId(jConfig)) _
     infoAppender(s"Size and equality validation:")
     infoAppender(s"validation.size.eq: ${ingestedRaster.tile.size == expectedRasterResampled.tile.size}")
     infoAppender(s"validation: ${ingestedRaster.tile.toArray().sameElements(expectedRasterResampled.tile.toArray())}")
@@ -53,8 +52,7 @@ object SinglebandSpatial extends ValidationUtilities with LoggingSummary {
       jConfig: JConfig,
       layerId: LayerId,
       dt: Option[DateTime],
-      read: (LayerId, Option[Extent]) => TileLayerRDD[SpatialKey],
-      logId: String
+      read: (LayerId, Option[Extent]) => TileLayerRDD[SpatialKey]
   ) {
     // The basic steps:
     // 1. establish test parameters
@@ -126,8 +124,8 @@ object SinglebandSpatial extends ValidationUtilities with LoggingSummary {
         }
       }
     }
-    val infoAppender = appendLog(logId) _
-    val warnAppender = appendLog(logId, Colors.yellow(_)) _
+    val infoAppender = appendLog(validationLogId(jConfig)) _
+    val warnAppender = appendLog(validationLogId(jConfig), Colors.yellow(_)) _
     infoAppender(s"Resample correctness")
     if (outOfBoundsCount > 0) warnAppender(s"Index out of bounds errors encounted: $outOfBoundsCount exceptions")
     infoAppender(s"Control tile range: ${maxControl - minControl}; test tile range: ${maxTest - minTest}")
