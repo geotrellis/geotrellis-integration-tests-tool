@@ -1,5 +1,6 @@
 package geotrellis.test.validation
 
+import geotrellis.config.json.dataset.JConfig
 import geotrellis.vector.Extent
 
 import scala.util.Random
@@ -19,4 +20,6 @@ trait ValidationUtilities {
 
     Extent(subsetXMin, subsetYMin, subsetXMin + sampleWidth, subsetYMin + sampleHeight)
   }
+
+  def validationLogId(jConfig: JConfig): String = s"${jConfig.name}.validate"
 }

@@ -44,21 +44,21 @@ abstract class TestEnvironment[
   lazy val layerId      = attributeStore.layerIds.filter(_.name == layerName).sortWith(_.zoom > _.zoom).head
 
   def read(append: Boolean = true)(layerId: LayerId, extent: Option[Extent] = None): RDD[(K, V)] with Metadata[M] =
-    withSpeedMetrics(s"${this.getClass.getName}.read", append) {
+    withSpeedMetrics(s"${jConfig.name}.read", append) {
       logger.info(green(s"reading ${layerId}..."))
       extent.fold(reader.read[K, V, M](layerId))(e => reader.read[K, V, M](layerId, new LayerQuery[K, M].where(Intersects(e))))
     }
 
   def ingest(layer: String, keyIndexMethod: KeyIndexMethod[K], jio: JIngestOptions)
             (implicit pi: Case[PolyIngest.type, PolyIngest.In[K, I, V]]): Unit =
-    withSpeedMetrics(s"${this.getClass.getName}.ingest") {
+    withSpeedMetrics(s"${jConfig.name}.ingest") {
       conf.set("io.map.index.interval", "1")
       logger.info(s"ingesting tiles into ${jConfig.`type`.ingestBackend} (${layer})...")
       PolyIngest(layer, keyIndexMethod, jio, loadTiles, writer)
     }
 
   def combine(layerId: LayerId)(implicit pc: Case[PolyCombine.type, PolyCombine.In[K, V, M]]) =
-    withSpeedMetrics(s"${this.getClass.getName}.combine") {
+    withSpeedMetrics(s"${jConfig.name}.combine") {
       logger.info(green(s"combineLayer ${layerId}..."))
       val rdd = read(false)(layerId)
       PolyCombine(layerId, rdd)
@@ -68,14 +68,14 @@ abstract class TestEnvironment[
               (implicit pv: Case.Aux[PolyValidate.type, PolyValidate.In[K, V, M], PolyValidate.Out[V]],
                         rw: Case[PolyWrite.type, PolyWrite.In[Option, V]],
                         lw: Case[PolyWrite.type, PolyWrite.In[List, V]]): Unit =
-    withSpeedMetrics(s"${this.getClass.getName}.validate") {
+    withSpeedMetrics(s"${jConfig.name}.validate") {
       val metadata = attributeStore.readMetadata[TileLayerMetadata[K]](layerId)
       val (ingestedRaster, expectedRasterResampled, diffRasters) =
-        PolyValidate(metadata, jConfig, layerId, dt, read(false) _, s"${this.getClass.getName}.validate")
+        PolyValidate(metadata, jConfig, layerId, dt, read(false) _)
 
-      PolyWrite(ingestedRaster, s"${jConfig.validationOptions.tmpDir}ingested.${this.getClass.getName}")
-      PolyWrite(expectedRasterResampled, s"${jConfig.validationOptions.tmpDir}expected.${this.getClass.getName}")
-      PolyWrite(diffRasters, s"${jConfig.validationOptions.tmpDir}diff.${this.getClass.getName}")
+      PolyWrite(ingestedRaster, s"${jConfig.validationOptions.tmpDir}ingested.${jConfig.name}")
+      PolyWrite(expectedRasterResampled, s"${jConfig.validationOptions.tmpDir}expected.${jConfig.name}")
+      PolyWrite(diffRasters, s"${jConfig.validationOptions.tmpDir}diff.${jConfig.name}")
     }
 
   def ingest(implicit pi: Case[PolyIngest.type, PolyIngest.In[K, I, V]]): Unit =
@@ -87,7 +87,7 @@ abstract class TestEnvironment[
 
   def newValidate(input: RDD[(I, V)], ingested: RDD[(K, V)] with Metadata[M])
                  (implicit pa: Case.Aux[PolyAssert.type, PolyAssert.In[V], PolyAssert.Out]): Unit =
-    withSpeedMetrics(s"${this.getClass.getName}.newValidate") {
+    withSpeedMetrics(s"${jConfig.name}.newValidate") {
 
       val threshold = jConfig.validationOptions.resolutionThreshold
       val md = ingested.metadata
@@ -135,8 +135,8 @@ abstract class TestEnvironment[
 
       val avgDelta = deltaSum / cellsCount
       val success = avgDelta < threshold
-      val infoAppender  = appendLog(s"${this.getClass.getName}.newValidate") _
-      val errorAppender = appendLog(s"${this.getClass.getName}.newValidate", red(_)) _
+      val infoAppender  = appendLog(s"${jConfig.name}.newValidate") _
+      val errorAppender = appendLog(s"${jConfig.name}.newValidate", red(_)) _
 
       infoAppender(s"threshold: ${threshold}")
       infoAppender(s"Cells count: ${cellsCount}")
