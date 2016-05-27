@@ -32,6 +32,11 @@ abstract class TestEnvironment[
 
   val writer: LayerWriter[LayerId]
   val reader: FilteringLayerReader[LayerId]
+  val copier: LayerCopier[LayerId]
+  val mover: LayerMover[LayerId]
+  val reindexer: LayerReindexer[LayerId]
+  val deleter: LayerDeleter[LayerId]
+  val updater: LayerUpdater[LayerId]
   val attributeStore: AttributeStore
 
   def loadTiles: RDD[(I, V)]
@@ -41,7 +46,10 @@ abstract class TestEnvironment[
   val ingestParams      = jConfig.getIngestParams
   val loadCredentials   = jCredentials.getLoad(jConfig)
   val ingestCredentials = jCredentials.getIngest(jConfig)
-  lazy val layerId      = attributeStore.layerIds.filter(_.name == layerName).sortWith(_.zoom > _.zoom).head
+
+  lazy val layerId        = attributeStore.layerIds.filter(_.name == layerName).sortWith(_.zoom > _.zoom).head
+  lazy val copyLayerId    = layerId.copy(name = s"${layerName}-copy-${DateTime.now.getMillis}")
+  lazy val moveLayerId    = layerId.copy(name = s"${layerName}-move-${DateTime.now.getMillis}")
 
   def read(append: Boolean = true)(layerId: LayerId, extent: Option[Extent] = None): RDD[(K, V)] with Metadata[M] =
     withSpeedMetrics(s"${jConfig.name}.read", append) {
@@ -160,13 +168,76 @@ abstract class TestEnvironment[
                           rw: Case[PolyWrite.type, PolyWrite.In[Option, V]],
                           lw: Case[PolyWrite.type, PolyWrite.In[List, V]]): Unit = validate(jConfig.validationOptions.dateTime)
 
+  def copy(id: LayerId, cid: LayerId): Unit = {
+    copier.copy[K, V, M](id, cid)
+    val rdd  = read(false)(id)
+    val crdd = read(false)(cid)
+    val (c, cc) = rdd.count() -> crdd.count()
+
+    if (c == cc) appendLog(s"${jConfig.name}.copy")("Copy test success")
+    else appendLog(s"${jConfig.name}.copy", red(_))(s"Copy test failed")
+  }
+
+  def copy: Unit = copy(layerId, copyLayerId)
+
+  def move(id: LayerId, mid: LayerId): Unit = {
+    mover.move[K, V, M](id, mid)
+    val rdd  = read(false)(id)
+    val crdd = read(false)(mid)
+    val (c, cc) = rdd.count() -> crdd.count()
+
+    if (c == cc) appendLog(s"${jConfig.name}.move")("Move test success")
+    else appendLog(s"${jConfig.name}.move", red(_))(s"Move test failed")
+  }
+
+  def move: Unit = move(copyLayerId, moveLayerId)
+
+  def reindex(id: LayerId, keyIndexMethod: KeyIndexMethod[K]): Unit = {
+    val c = read(false)(id).count()
+    reindexer.reindex[K, V, M](id, keyIndexMethod)
+    val cc = read(false)(id).count()
+
+    if (c == cc) appendLog(s"${jConfig.name}.reindex")("Reindex test success")
+    else appendLog(s"${jConfig.name}.reindex", red(_))(s"Reindex test failed")
+  }
+
+  def reindex: Unit = reindex(moveLayerId, jConfig.ingestOptions.keyIndexMethod.getKeyIndexMethod[K])
+
+  def update(id: LayerId, rdd: RDD[(K, V)] with Metadata[M]): Unit = {
+    updater.update[K, V, M](id, rdd)
+    val urdd = read(false)(id)
+
+    val (c, cc) = rdd.count() -> urdd.count()
+    if (c == cc) appendLog(s"${jConfig.name}.update")("Update test success")
+    else appendLog(s"${jConfig.name}.update", red(_))(s"Update test failed")
+  }
+
+  def update: Unit = update(moveLayerId, read(false)(moveLayerId))
+
+  def delete(id: LayerId): Unit = {
+    deleter.delete(id)
+    try reader.read[K, V, M](id) catch {
+      case e: LayerNotFoundError => appendLog(s"${jConfig.name}.delete")("Delete test success")
+      case _ => appendLog(s"${jConfig.name}.delete", red(_))(s"Delete test failed")
+    }
+  }
+
+  def delete: Unit = delete(moveLayerId)
+
   def run(implicit pi: Case[PolyIngest.type, PolyIngest.In[K, I, V]],
                    pc: Case[PolyCombine.type, PolyCombine.In[K, V, M]],
                    pv: Case.Aux[PolyValidate.type, PolyValidate.In[K, V, M], PolyValidate.Out[V]],
                    rw: Case[PolyWrite.type, PolyWrite.In[Option, V]],
                    lw: Case[PolyWrite.type, PolyWrite.In[List, V]],
                    pa: Case.Aux[PolyAssert.type, PolyAssert.In[V], PolyAssert.Out]) = {
-    ingest; combine; validate; newValidate
+    ingest
+    combine
+    validate
+    newValidate
+    copy
+    move
+    reindex
+    update
     printSummary()
   }
 }
