@@ -19,8 +19,8 @@ abstract class S3Test[
   K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag,
   V <: CellGrid: AvroRecordCodec: ClassTag
 ](jConfig: JConfig, jCredentials: JCredentials) extends TestEnvironment[I, K, V](jConfig, jCredentials) with S3Support {
-  @transient lazy val writer         = S3LayerWriter(s3IngestBucket, s3IngestPrefix)
-  @transient lazy val reader         = S3LayerReader(s3IngestBucket, s3IngestPrefix)
+  @transient lazy val writer         = S3LayerWriter(attributeStore)
+  @transient lazy val reader         = S3LayerReader(attributeStore)
   @transient lazy val copier         = S3LayerCopier(attributeStore, s3IngestBucket, s3IngestPrefix)
   @transient lazy val mover          = GenericLayerMover(copier, deleter)
   @transient lazy val reindexer      = GenericLayerReindexer[S3LayerHeader](attributeStore, reader, writer, deleter, copier)

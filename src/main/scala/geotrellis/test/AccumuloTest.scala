@@ -19,7 +19,7 @@ abstract class AccumuloTest[
   K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag,
   V <: CellGrid: AvroRecordCodec: ClassTag
 ](jConfig: JConfig, jCredentials: JCredentials) extends TestEnvironment[I, K, V](jConfig, jCredentials) with AccumuloSupport {
-  @transient lazy val writer         = AccumuloLayerWriter(instance, table)
+  @transient lazy val writer         = AccumuloLayerWriter(instance, table, SocketWriteStrategy())
   @transient lazy val reader         = AccumuloLayerReader(instance)
   @transient lazy val copier         = AccumuloLayerCopier(instance)
   @transient lazy val mover          = AccumuloLayerMover(instance)

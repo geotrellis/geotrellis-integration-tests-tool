@@ -169,10 +169,9 @@ abstract class TestEnvironment[
                           lw: Case[PolyWrite.type, PolyWrite.In[List, V]]): Unit = validate(jConfig.validationOptions.dateTime)
 
   def copy(id: LayerId, cid: LayerId): Unit = {
+    val c = read(false)(id).count()
     copier.copy[K, V, M](id, cid)
-    val rdd  = read(false)(id)
-    val crdd = read(false)(cid)
-    val (c, cc) = rdd.count() -> crdd.count()
+    val cc = read(false)(cid).count()
 
     if (c == cc) appendLog(s"${jConfig.name}.copy")("Copy test success")
     else appendLog(s"${jConfig.name}.copy", red(_))(s"Copy test failed")
@@ -181,10 +180,9 @@ abstract class TestEnvironment[
   def copy: Unit = copy(layerId, copyLayerId)
 
   def move(id: LayerId, mid: LayerId): Unit = {
+    val c = read(false)(id).count()
     mover.move[K, V, M](id, mid)
-    val rdd  = read(false)(id)
-    val crdd = read(false)(mid)
-    val (c, cc) = rdd.count() -> crdd.count()
+    val cc = read(false)(mid).count()
 
     if (c == cc) appendLog(s"${jConfig.name}.move")("Move test success")
     else appendLog(s"${jConfig.name}.move", red(_))(s"Move test failed")
