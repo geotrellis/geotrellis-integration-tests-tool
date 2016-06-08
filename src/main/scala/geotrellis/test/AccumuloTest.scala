@@ -21,10 +21,10 @@ abstract class AccumuloTest[
 ](jConfig: JConfig, jCredentials: JCredentials) extends TestEnvironment[I, K, V](jConfig, jCredentials) with AccumuloSupport {
   @transient lazy val writer         = AccumuloLayerWriter(instance, table, SocketWriteStrategy())
   @transient lazy val reader         = AccumuloLayerReader(instance)
-  @transient lazy val copier         = AccumuloLayerCopier(instance)
-  @transient lazy val mover          = AccumuloLayerMover(instance)
-  @transient lazy val reindexer      = AccumuloLayerReindexer(instance)
+  @transient lazy val copier         = AccumuloLayerCopier(instance, SocketWriteStrategy())
+  @transient lazy val mover          = AccumuloLayerMover(instance, SocketWriteStrategy())
+  @transient lazy val reindexer      = AccumuloLayerReindexer(instance, SocketWriteStrategy())
   @transient lazy val deleter        = AccumuloLayerDeleter(instance)
-  @transient lazy val updater        = AccumuloLayerUpdater(instance)
+  @transient lazy val updater        = AccumuloLayerUpdater(instance, SocketWriteStrategy())
   @transient lazy val attributeStore = AccumuloAttributeStore(instance.connector)
 }
