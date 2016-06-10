@@ -230,7 +230,7 @@ abstract class TestEnvironment[
                    pa: Case.Aux[PolyAssert.type, PolyAssert.In[V], PolyAssert.Out]) = {
     ingest
     combine
-    validate
+    //validate
     newValidate
     copy
     move
