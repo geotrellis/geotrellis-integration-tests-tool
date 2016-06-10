@@ -168,57 +168,62 @@ abstract class TestEnvironment[
                           rw: Case[PolyWrite.type, PolyWrite.In[Option, V]],
                           lw: Case[PolyWrite.type, PolyWrite.In[List, V]]): Unit = validate(jConfig.validationOptions.dateTime)
 
-  def copy(id: LayerId, cid: LayerId): Unit = {
-    val c = read(false)(id).count()
-    copier.copy[K, V, M](id, cid)
-    val cc = read(false)(cid).count()
+  def copy(id: LayerId, cid: LayerId): Unit =
+    withSpeedMetrics(s"${jConfig.name}.copy") {
+      val c = read(false)(id).count()
+      copier.copy[K, V, M](id, cid)
+      val cc = read(false)(cid).count()
 
-    if (c == cc) appendLog(s"${jConfig.name}.copy")("Copy test success")
-    else appendLog(s"${jConfig.name}.copy", red(_))(s"Copy test failed")
-  }
+      if (c == cc) appendLog(s"${jConfig.name}.copy")("Copy test success")
+      else appendLog(s"${jConfig.name}.copy", red(_))(s"Copy test failed")
+    }
 
   def copy: Unit = copy(layerId, copyLayerId)
 
-  def move(id: LayerId, mid: LayerId): Unit = {
-    val c = read(false)(id).count()
-    mover.move[K, V, M](id, mid)
-    val cc = read(false)(mid).count()
+  def move(id: LayerId, mid: LayerId): Unit =
+    withSpeedMetrics(s"${jConfig.name}.move") {
+      val c = read(false)(id).count()
+      mover.move[K, V, M](id, mid)
+      val cc = read(false)(mid).count()
 
-    if (c == cc) appendLog(s"${jConfig.name}.move")("Move test success")
-    else appendLog(s"${jConfig.name}.move", red(_))(s"Move test failed")
-  }
+      if (c == cc) appendLog(s"${jConfig.name}.move")("Move test success")
+      else appendLog(s"${jConfig.name}.move", red(_))(s"Move test failed")
+    }
 
   def move: Unit = move(copyLayerId, moveLayerId)
 
-  def reindex(id: LayerId, keyIndexMethod: KeyIndexMethod[K]): Unit = {
-    val c = read(false)(id).count()
-    reindexer.reindex[K, V, M](id, keyIndexMethod)
-    val cc = read(false)(id).count()
+  def reindex(id: LayerId, keyIndexMethod: KeyIndexMethod[K]): Unit =
+    withSpeedMetrics(s"${jConfig.name}.reindex") {
+      val c = read(false)(id).count()
+      reindexer.reindex[K, V, M](id, keyIndexMethod)
+      val cc = read(false)(id).count()
 
-    if (c == cc) appendLog(s"${jConfig.name}.reindex")("Reindex test success")
-    else appendLog(s"${jConfig.name}.reindex", red(_))(s"Reindex test failed")
-  }
+      if (c == cc) appendLog(s"${jConfig.name}.reindex")("Reindex test success")
+      else appendLog(s"${jConfig.name}.reindex", red(_))(s"Reindex test failed")
+    }
 
   def reindex: Unit = reindex(moveLayerId, jConfig.ingestOptions.keyIndexMethod.getKeyIndexMethod[K])
 
-  def update(id: LayerId, rdd: RDD[(K, V)] with Metadata[M]): Unit = {
-    updater.update[K, V, M](id, rdd)
-    val urdd = read(false)(id)
+  def update(id: LayerId, rdd: RDD[(K, V)] with Metadata[M]): Unit =
+    withSpeedMetrics(s"${jConfig.name}.update") {
+      updater.update[K, V, M](id, rdd)
+      val urdd = read(false)(id)
 
-    val (c, cc) = rdd.count() -> urdd.count()
-    if (c == cc) appendLog(s"${jConfig.name}.update")("Update test success")
-    else appendLog(s"${jConfig.name}.update", red(_))(s"Update test failed")
-  }
+      val (c, cc) = rdd.count() -> urdd.count()
+      if (c == cc) appendLog(s"${jConfig.name}.update")("Update test success")
+      else appendLog(s"${jConfig.name}.update", red(_))(s"Update test failed")
+    }
 
   def update: Unit = update(moveLayerId, read(false)(moveLayerId))
 
-  def delete(id: LayerId): Unit = {
-    deleter.delete(id)
-    try reader.read[K, V, M](id) catch {
-      case e: LayerNotFoundError => appendLog(s"${jConfig.name}.delete")("Delete test success")
-      case _ => appendLog(s"${jConfig.name}.delete", red(_))(s"Delete test failed")
+  def delete(id: LayerId): Unit =
+    withSpeedMetrics(s"${jConfig.name}.delete") {
+      deleter.delete(id)
+      try reader.read[K, V, M](id) catch {
+        case e: LayerNotFoundError => appendLog(s"${jConfig.name}.delete")("Delete test success")
+        case _ => appendLog(s"${jConfig.name}.delete", red(_))(s"Delete test failed")
+      }
     }
-  }
 
   def delete: Unit = delete(moveLayerId)
 
@@ -227,15 +232,16 @@ abstract class TestEnvironment[
                    pv: Case.Aux[PolyValidate.type, PolyValidate.In[K, V, M], PolyValidate.Out[V]],
                    rw: Case[PolyWrite.type, PolyWrite.In[Option, V]],
                    lw: Case[PolyWrite.type, PolyWrite.In[List, V]],
-                   pa: Case.Aux[PolyAssert.type, PolyAssert.In[V], PolyAssert.Out]) = {
-    ingest
-    combine
-    //validate
-    newValidate
-    copy
-    move
-    reindex
-    update
-    printSummary()
-  }
+                   pa: Case.Aux[PolyAssert.type, PolyAssert.In[V], PolyAssert.Out]) =
+    withSpeedMetrics(s"${jConfig.name}.run") {
+      ingest
+      combine
+      //validate
+      newValidate
+      copy
+      move
+      reindex
+      update
+      printSummary()
+    }
 }
