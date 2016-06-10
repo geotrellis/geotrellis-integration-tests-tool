@@ -1,5 +1,5 @@
 name := "geotrellis-integration-tests"
-version := "0.1.0-SNAPSHOT"
+version := "0.1.1-SNAPSHOT"
 scalaVersion := "2.10.6"
 crossScalaVersions := Seq("2.11.8", "2.10.6")
 organization := "com.azavea"
@@ -24,7 +24,7 @@ resolvers ++= Seq(
   Resolver.sonatypeRepo("releases")
 )
 
-val gtVersion    = "0.10.0-SNAPSHOT"
+val gtVersion    = "1.0.0-SNAPSHOT"
 val circeVersion = "0.4.1"
 
 val geotrellis = Seq(

@@ -8,11 +8,13 @@ trait CassandraSupport extends BackendSupport {
   @transient lazy val instance = ingestCredentials.collect { case credentials: JCassandra =>
     BaseCassandraInstance(
       credentials.hosts,
-      credentials.keyspace,
       credentials.user,
       credentials.password,
       credentials.replicationStrategy,
-      credentials.replicationFactor
+      credentials.replicationFactor,
+      credentials.localDc,
+      credentials.usedHostsPerRemoteDc,
+      credentials.allowRemoteDCsForLocalConsistencyLevel
     )
   }.get
 }

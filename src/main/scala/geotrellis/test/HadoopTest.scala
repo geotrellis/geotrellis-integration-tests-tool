@@ -20,7 +20,12 @@ abstract class HadoopTest[
   K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag,
   V <: CellGrid: AvroRecordCodec: ClassTag
 ](jConfig: JConfig, jCredentials: JCredentials) extends TestEnvironment[I, K, V](jConfig, jCredentials) with HadoopSupport {
-  @transient lazy val writer = HadoopLayerWriter(new Path(hadoopIngestPath))
-  @transient lazy val reader = HadoopLayerReader(new Path(hadoopIngestPath))
+  @transient lazy val writer         = HadoopLayerWriter(hadoopIngestPath)
+  @transient lazy val reader         = HadoopLayerReader(hadoopIngestPath)
+  @transient lazy val copier         = HadoopLayerCopier(hadoopIngestPath)
+  @transient lazy val mover          = HadoopLayerMover(hadoopIngestPath)
+  @transient lazy val reindexer      = HadoopLayerReindexer(hadoopIngestPath)
+  @transient lazy val deleter        = HadoopLayerDeleter(hadoopIngestPath)
+  @transient lazy val updater        = HadoopLayerUpdater(hadoopIngestPath)
   @transient lazy val attributeStore = HadoopAttributeStore(hadoopIngestPath)
 }
