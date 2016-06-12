@@ -61,7 +61,7 @@ abstract class TestEnvironment[
             (implicit pi: Case[PolyIngest.type, PolyIngest.In[K, I, V]]): Unit =
     withSpeedMetrics(s"${jConfig.name}.ingest") {
       conf.set("io.map.index.interval", "1")
-      logger.info(green(s"ingesting tiles into accumulo (${layer})..."))
+      logger.info(s"ingesting tiles into ${jConfig.`type`.ingestBackend} (${layer})...")
       PolyIngest(layer, keyIndexMethod, jio, loadTiles, writer)
     }
 
@@ -234,6 +234,7 @@ abstract class TestEnvironment[
                    lw: Case[PolyWrite.type, PolyWrite.In[List, V]],
                    pa: Case.Aux[PolyAssert.type, PolyAssert.In[V], PolyAssert.Out]) =
     withSpeedMetrics(s"${jConfig.name}.run") {
+      beforeAll
       ingest
       combine
       //validate
@@ -242,6 +243,9 @@ abstract class TestEnvironment[
       move
       reindex
       update
-      printSummary()
+      afterAll
     }
+
+  def beforeAll: Unit = { }
+  def afterAll: Unit = { printSummary() }
 }

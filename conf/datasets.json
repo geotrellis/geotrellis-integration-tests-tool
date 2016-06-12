@@ -32,6 +32,45 @@
     }
   },
   {
+    "name":"nexspatialc",
+    "type":{
+      "ingestCredentials":"cgis",
+      "loadBackend":"hadoop",
+      "ingestBackend":"cassandra",
+      "tileType":"singleband",
+      "ingestType":"spatial"
+    },
+    "path":{
+      "load":"/geotrellis-integration-load/",
+      "ingest":"gtintegration"
+    },
+    "ingestOptions":{
+      "resampleMethod":"nearest-neighbor",
+      "layoutScheme":{
+        "type":"zoomed",
+        "crs":"EPSG:3857",
+        "tileSize":256,
+        "resolutionThreshold":0.1
+      },
+      "keyIndexMethod":{
+        "type":"zorder"
+      }
+    },
+    "validationOptions":{
+      "sampleScale":0.3,
+      "resolutionThreshold":0.1,
+      "tmpDir":"/data/tmp/",
+      "tiffLocal":"/data/tmp/tasmax_amon_BCSD_rcp26_r1i1p1_CONUS_CCSM4_200601-201012-200601120000_0_0.tif"
+    }
+  },
+  {
+    "name":"nexspatials",
+    "type":{
+      "ingestCredentials":"gis",
+      "loadBackend":"s3",
+      "ingestBackend":"accumulo",
+      "tileType":"singleband",
+      "ingestType":"spatial"
     "name": "nexspatials",
     "type": {
       "ingestCredentials": "gis",

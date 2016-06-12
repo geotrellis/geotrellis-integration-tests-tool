@@ -12,8 +12,8 @@ case class JConfig(name: String, `type`: JType, path: JPath, ingestOptions: JIng
       val JConfig.S3UrlRx(_, _, bucket, prefix) = p
       Map("bucket" -> bucket, "key" -> prefix)
     }
-    case JAccumuloType           => Map("table" -> p)
-    case JHadoopType | JFileType => Map("path" -> p)
+    case JAccumuloType | JCassandraType => Map("table" -> p)
+    case JHadoopType | JFileType        => Map("path" -> p)
   }
 
   def getLoadParams     = getInputParams(`type`.loadBackend, path.load)

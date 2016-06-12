@@ -3,7 +3,7 @@
 Simple run:
 
 ```bash
-spark-submit ${PWD}/target/scala-2.10/geotrellis-integration-tests-assembly-0.1.0-SNAPSHOT.jar \
+spark-submit ${PWD}/target/scala-2.10/geotrellis-integration-tests-assembly-0.1.1-SNAPSHOT.jar \
              --datasets "file://${PWD}/conf/datasets.json" \
              --credentials "file://${PWD}/conf/credentials.json"
 ```
@@ -13,7 +13,7 @@ Run with custom environment variables (in this case with S3Appender)
 ```bash
 spark-submit --conf spark.driver.extraJavaOptions="-Dlog4j.configuration=file://${PWD}/conf/log4j.properties" \
              --conf spark.executor.extraJavaOptions="-Dlog4j.configuration=file://${PWD}/conf/log4j.properties" \
-             ${PWD}/target/scala-2.10/geotrellis-integration-tests-assembly-0.1.0-SNAPSHOT.jar \
+             ${PWD}/target/scala-2.10/geotrellis-integration-tests-assembly-0.1.1-SNAPSHOT.jar \
                --datasets "file://${PWD}/conf/datasets.json" \
                --credentials "file://${PWD}/conf/credentials.json"
 ```
