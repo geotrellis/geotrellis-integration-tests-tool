@@ -71,13 +71,6 @@
       "ingestBackend":"accumulo",
       "tileType":"singleband",
       "ingestType":"spatial"
-    "name": "nexspatials",
-    "type": {
-      "ingestCredentials": "gis",
-      "loadBackend": "s3",
-      "ingestBackend": "accumulo",
-      "tileType": "singleband",
-      "ingestType": "spatial"
     },
     "path": {
       "load": "s3://geotrellis-test/nex-geotiff",
