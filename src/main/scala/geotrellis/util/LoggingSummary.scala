@@ -17,21 +17,11 @@ object LoggingSummary {
     (writer, appender)
   }
 
-  def printSummary(logger: Logger, summaryName: String) = {
-    val speedWithLogs = speedMetricsBuffer.toList zip logBuffer.toList
-    val speedOnly     = speedMetricsBuffer.toList.diff(speedWithLogs.map(_._1))
-    val logsOnly      = logBuffer.toList.diff(speedWithLogs.map(_._2))
-
+  def printSummary(logger: Logger, summaryName: String) =
     logger.info(green(s"\n${summaryName}:\n") +
-      (logsOnly map { case (key, log) =>
-        s"${grey(s"${key}:")}\n ${log mkString "\n"}"
-      } mkString "\n") + (speedOnly map { case (key, speed) =>
-      s"${grey(s"${key}:")}\n ${speed mkString "\n"}"
-    } mkString "\n") + (speedWithLogs map { case ((key, speed), (_, log)) =>
-      s"${grey(s"${key}:")}\n ${log mkString " "}${speed mkString " "}"
-    } mkString "\n")
-    )
-  }
+      (logBuffer map { case (key, log) =>
+        s"${grey(s"${key}:")}\n ${log mkString " "}"
+      } mkString ""))
 }
 
 trait LoggingSummary {
@@ -56,7 +46,10 @@ trait LoggingSummary {
     val e = System.currentTimeMillis
     val t = "%,d".format(e - s)
 
-    if(append) appendBuffer(id, cyan(s"Run completed in ${t} milliseconds"), speedMetricsBuffer)
+    if(append) {
+      appendBuffer(id, cyan(s"Run completed in ${t} milliseconds"), speedMetricsBuffer)
+      appendBuffer(id, cyan(s"Run completed in ${t} milliseconds"), logBuffer)
+    }
 
     result
   }
