@@ -175,7 +175,7 @@ abstract class TestEnvironment[
       val cc = read(false)(cid).count()
 
       if (c == cc) appendLog(s"${jConfig.name}.copy")("Copy test success")
-      else appendLog(s"${jConfig.name}.copy", red(_))(s"Copy test failed")
+      else appendLog(s"${jConfig.name}.copy", red(_))(s"Copy test failed ($c != $cc)")
     }
 
   def copy: Unit = copy(layerId, copyLayerId)
@@ -187,7 +187,7 @@ abstract class TestEnvironment[
       val cc = read(false)(mid).count()
 
       if (c == cc) appendLog(s"${jConfig.name}.move")("Move test success")
-      else appendLog(s"${jConfig.name}.move", red(_))(s"Move test failed")
+      else appendLog(s"${jConfig.name}.move", red(_))(s"Move test failed ($c != $cc)")
     }
 
   def move: Unit = move(copyLayerId, moveLayerId)
@@ -199,7 +199,7 @@ abstract class TestEnvironment[
       val cc = read(false)(id).count()
 
       if (c == cc) appendLog(s"${jConfig.name}.reindex")("Reindex test success")
-      else appendLog(s"${jConfig.name}.reindex", red(_))(s"Reindex test failed")
+      else appendLog(s"${jConfig.name}.reindex", red(_))(s"Reindex test failed ($c != $cc)")
     }
 
   def reindex: Unit = reindex(moveLayerId, jConfig.ingestOptions.keyIndexMethod.getKeyIndexMethod[K])
@@ -211,7 +211,7 @@ abstract class TestEnvironment[
 
       val (c, cc) = rdd.count() -> urdd.count()
       if (c == cc) appendLog(s"${jConfig.name}.update")("Update test success")
-      else appendLog(s"${jConfig.name}.update", red(_))(s"Update test failed")
+      else appendLog(s"${jConfig.name}.update", red(_))(s"Update test failed ($c != $cc)")
     }
 
   def update: Unit = update(moveLayerId, read(false)(moveLayerId))
@@ -247,5 +247,5 @@ abstract class TestEnvironment[
     }
 
   def beforeAll: Unit = { }
-  def afterAll: Unit = { printSummary() }
+  def afterAll: Unit = { printSummary(filter = Some(jConfig.name)) }
 }

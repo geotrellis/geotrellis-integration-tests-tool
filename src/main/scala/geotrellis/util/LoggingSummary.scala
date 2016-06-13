@@ -17,11 +17,13 @@ object LoggingSummary {
     (writer, appender)
   }
 
-  def printSummary(logger: Logger, summaryName: String) =
+  def printSummary(logger: Logger, summaryName: String, filter: Option[String]) = {
+    val buffer = filter.fold(logBuffer)(f => logBuffer filter (_._1.split("\\.").head == f))
     logger.info(green(s"\n${summaryName}:\n") +
-      (logBuffer map { case (key, log) =>
+      (buffer map { case (key, log) =>
         s"${grey(s"${key}:")}\n ${log mkString " "}"
       } mkString ""))
+  }
 }
 
 trait LoggingSummary {
@@ -66,5 +68,5 @@ trait LoggingSummary {
 
   def printLoggingSummary = if(logBuffer.nonEmpty) printBuffer(logBuffer, green("LoggingSummary:"))
 
-  def printSummary(summaryName: String = "Test Summary") = LoggingSummary.printSummary(logger, summaryName)
+  def printSummary(summaryName: String = "Test Summary", filter: Option[String] = None) = LoggingSummary.printSummary(logger, summaryName, filter)
 }
