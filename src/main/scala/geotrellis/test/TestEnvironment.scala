@@ -22,6 +22,7 @@ import shapeless.poly._
 import spire.syntax.cfor._
 
 import scala.reflect.ClassTag
+import scala.util.{Try, Success, Failure}
 
 abstract class TestEnvironment[
   I: ClassTag: ? => TilerKeyMethods[I, K]: Component[?, ProjectedExtent],
@@ -234,16 +235,21 @@ abstract class TestEnvironment[
                    lw: Case[PolyWrite.type, PolyWrite.In[List, V]],
                    pa: Case.Aux[PolyAssert.type, PolyAssert.In[V], PolyAssert.Out]) =
     withSpeedMetrics(s"${jConfig.name}.run") {
-      beforeAll
-      ingest
-      combine
-      //validate
-      newValidate
-      copy
-      move
-      reindex
-      update
-      afterAll
+      Try {
+        beforeAll
+        ingest
+        combine
+        //validate
+        newValidate
+        copy
+        move
+        reindex
+        update
+        afterAll
+      } match {
+        case Success(s) => s
+        case Failure(e) => appendLog(s"${jConfig.name}.run", red(_))(s"Run test failed: ${LoggingSummary.stackTraceToString(e)}")
+      }
     }
 
   def beforeAll: Unit = { }

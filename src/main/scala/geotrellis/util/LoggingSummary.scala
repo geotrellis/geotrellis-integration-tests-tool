@@ -1,11 +1,10 @@
 package geotrellis.util
 
 import geotrellis.util.Colors._
-
 import org.apache.log4j.{Logger, PatternLayout, WriterAppender}
 
-import java.io.StringWriter
 import scala.collection.mutable
+import java.io.{PrintWriter, StringWriter}
 
 object LoggingSummary {
   @transient val speedMetricsBuffer = mutable.Map[String, mutable.ListBuffer[String]]()
@@ -23,6 +22,13 @@ object LoggingSummary {
       (buffer map { case (key, log) =>
         s"${grey(s"${key}:")}\n ${log mkString " "}"
       } mkString ""))
+  }
+
+  def stackTraceToString(e: Throwable): String = {
+    val sw = new StringWriter()
+    val pw = new PrintWriter(sw)
+    e.printStackTrace(pw)
+    sw.toString
   }
 }
 
