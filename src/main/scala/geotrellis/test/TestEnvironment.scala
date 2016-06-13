@@ -210,8 +210,8 @@ abstract class TestEnvironment[
       val urdd = read(false)(id)
 
       val (c, cc) = rdd.count() -> urdd.count()
-      if (c == cc) appendLog(s"${jConfig.name}.update")("Update test success")
-      else appendLog(s"${jConfig.name}.update", red(_))(s"Update test failed ($c != $cc)")
+      if (c >= cc) appendLog(s"${jConfig.name}.update")("Update test success")
+      else appendLog(s"${jConfig.name}.update", red(_))(s"Update test failed ($c <= $cc)")
     }
 
   def update: Unit = update(moveLayerId, read(false)(moveLayerId))
