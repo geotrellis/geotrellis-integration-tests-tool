@@ -153,7 +153,7 @@ abstract class TestEnvironment[
       infoAppender(s"deltaSum: ${deltaSum}")
       infoAppender(s"Goods count: ${goodsCount}")
       infoAppender(s"Bads count: ${badsCount}")
-      infoAppender(s"NaNs per cell: ${nansCount / cellsCount}")
+      infoAppender(s"NaNs per cell: ${if(cellsCount > 0) nansCount / cellsCount else 0}")
       infoAppender(s"Average delta: ${avgDelta}")
       infoAppender(s"Average delta < threshold: ${success}")
       if (success) infoAppender(s"New validation test success")
