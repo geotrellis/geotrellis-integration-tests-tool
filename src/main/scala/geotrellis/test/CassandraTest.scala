@@ -18,7 +18,7 @@ abstract class CassandraTest[
   K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag,
   V <: CellGrid: AvroRecordCodec: ClassTag
 ](jConfig: JConfig, jCredentials: JCredentials) extends TestEnvironment[I, K, V](jConfig, jCredentials) with CassandraSupport {
-  @transient lazy val writer         = CassandraLayerWriter(attributeStore, ingestCredentials.collect { case credentials: JCassandra => credentials.keyspace }.get, table)
+  @transient lazy val writer         = CassandraLayerWriter(attributeStore, cassandraOutputPath.keyspace, cassandraOutputPath.table)
   @transient lazy val reader         = CassandraLayerReader(attributeStore)
   @transient lazy val deleter        = CassandraLayerDeleter(attributeStore)
   @transient lazy val updater        = CassandraLayerUpdater(attributeStore)

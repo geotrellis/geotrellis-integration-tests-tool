@@ -12,6 +12,6 @@ trait HadoopLoad { self: TestEnvironment[ProjectedExtent, SpatialKey, MultibandT
   def loadTiles: RDD[(ProjectedExtent, MultibandTile)] = {
     logger.info("loading tiles from hdfs...")
     val hadoopInput = new MultibandGeoTiffHadoopInput()
-    hadoopInput(loadParams)
+    hadoopInput(etlConf)
   }
 }

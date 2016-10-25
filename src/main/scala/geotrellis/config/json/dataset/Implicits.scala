@@ -5,42 +5,43 @@ import geotrellis.raster.resample._
 
 import cats.data.Xor
 import io.circe.Decoder
-import org.joda.time.DateTime
+
+import java.time.ZonedDateTime
 
 trait Implicits {
-  implicit val decodeDateTime: Decoder[DateTime] = Decoder.instance { cursor =>
+  implicit val decodeDateTime: Decoder[ZonedDateTime] = Decoder.instance { cursor =>
     cursor.as[String].flatMap {
-      case dt => Xor.right(DateTime.parse(dt))
+      dt => Xor.right(ZonedDateTime.parse(dt))
     }
   }
 
   implicit val decodeCrs: Decoder[CRS] = Decoder.instance { cursor =>
     cursor.as[String].flatMap {
-      case crs => Xor.right(CRS.fromName(crs))
+      crs => Xor.right(CRS.fromName(crs))
     }
   }
 
   implicit val decodeJBackendType: Decoder[JBackendType] = Decoder.instance { cursor =>
     cursor.as[String].flatMap {
-      case jbt => Xor.right(JBackendType.fromName(jbt))
+      jbt => Xor.right(JBackendType.fromName(jbt))
     }
   }
 
   implicit val decodeJBackendLoadType: Decoder[JBackendLoadType] = Decoder.instance { cursor =>
     cursor.as[String].flatMap {
-      case jbt => Xor.right(JBackendType.fromNameLoad(jbt))
+      jbt => Xor.right(JBackendType.fromNameLoad(jbt))
     }
   }
 
   implicit val decodeJIngestType: Decoder[JIngestType] = Decoder.instance { cursor =>
     cursor.as[String].flatMap {
-      case jit => Xor.right(JIngestType.fromName(jit))
+      jit => Xor.right(JIngestType.fromName(jit))
     }
   }
 
   implicit val decodeJTileType: Decoder[JTileType] = Decoder.instance { cursor =>
     cursor.as[String].flatMap {
-      case jtt => Xor.right(JTileType.fromName(jtt))
+      jtt => Xor.right(JTileType.fromName(jtt))
     }
   }
 

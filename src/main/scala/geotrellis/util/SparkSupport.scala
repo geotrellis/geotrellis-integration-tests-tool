@@ -2,14 +2,14 @@ package geotrellis.util
 
 import geotrellis.config.json.dataset.JConfig
 import geotrellis.spark.io.hadoop.formats.TemporalGeoTiffInputFormat
+import geotrellis.spark.io.kryo.KryoRegistrator
 import geotrellis.spark.util.SparkUtils
+
 import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.log4j.Logger
+import org.apache.spark.serializer.KryoSerializer
 
 trait SparkSupport {
-  @transient lazy val logger: Logger = Logger.getLogger(this.getClass)
-
-  @transient implicit val sc: SparkContext
+  implicit val sc: SparkContext
 
   @transient lazy val conf = SparkUtils.hadoopConfiguration
 }
@@ -20,8 +20,8 @@ object SparkSupport {
       new SparkContext(
         new SparkConf()
           .setAppName("GeoTrellis Integration Tests")
-          .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-          .set("spark.kryo.registrator", "geotrellis.spark.io.kryo.KryoRegistrator")
+          .set("spark.serializer", classOf[KryoSerializer].getName)
+          .set("spark.kryo.registrator", classOf[KryoRegistrator].getName)
           .setJars(SparkContext.jarOfObject(this).toList)
       )
     )

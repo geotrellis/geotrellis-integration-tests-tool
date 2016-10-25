@@ -1,5 +1,5 @@
 package geotrellis.config.json.dataset
 
-import org.joda.time.DateTime
+import java.time.ZonedDateTime
 
-case class JValidationOptions(sampleScale: Double, resolutionThreshold: Double, tmpDir: String, tiffLocal: String, dateTime: Option[DateTime])
+case class JValidationOptions(sampleScale: Double, resolutionThreshold: Double, tmpDir: String, tiffLocal: String, dateTime: Option[ZonedDateTime])

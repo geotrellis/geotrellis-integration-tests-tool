@@ -1,11 +1,11 @@
 package geotrellis.core.poly
 
 import geotrellis.raster.{MultibandTile, Tile}
-import org.slf4j.{Logger, LoggerFactory}
-import shapeless.{::, HNil, Poly3}
 
-object PolyAssert extends Poly3 {
-  @transient lazy val logger: Logger = LoggerFactory.getLogger(this.getClass)
+import shapeless.{::, HNil, Poly3}
+import com.typesafe.scalalogging.LazyLogging
+
+object PolyAssert extends Poly3 with LazyLogging {
 
   type In[V] = (V, V) :: ((Int, Int), (Int, Int)) :: Double :: HNil
   type Out   = (Boolean, Double, Boolean)

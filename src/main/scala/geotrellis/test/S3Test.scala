@@ -21,10 +21,10 @@ abstract class S3Test[
 ](jConfig: JConfig, jCredentials: JCredentials) extends TestEnvironment[I, K, V](jConfig, jCredentials) with S3Support {
   @transient lazy val writer         = S3LayerWriter(attributeStore)
   @transient lazy val reader         = S3LayerReader(attributeStore)
-  @transient lazy val copier         = S3LayerCopier(attributeStore, s3IngestBucket, s3IngestPrefix)
+  @transient lazy val copier         = S3LayerCopier(attributeStore, s3OutputPath.bucket, s3OutputPath.prefix)
   @transient lazy val mover          = GenericLayerMover(copier, deleter)
   @transient lazy val reindexer      = GenericLayerReindexer[S3LayerHeader](attributeStore, reader, writer, deleter, copier)
   @transient lazy val deleter        = S3LayerDeleter(attributeStore)
   @transient lazy val updater        = new S3LayerUpdater(attributeStore, reader)
-  @transient lazy val attributeStore = S3AttributeStore(s3IngestBucket, s3IngestPrefix)
+  @transient lazy val attributeStore = S3AttributeStore(s3OutputPath.bucket, s3OutputPath.prefix)
 }

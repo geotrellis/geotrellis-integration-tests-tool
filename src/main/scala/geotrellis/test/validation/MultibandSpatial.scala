@@ -9,19 +9,17 @@ import geotrellis.vector.Extent
 import geotrellis.config.json.dataset.JConfig
 import geotrellis.util.{Colors, LoggingSummary}
 
-import org.joda.time.DateTime
+import java.time.ZonedDateTime
 import org.apache.log4j.Logger
 
 import scala.math._
 
 object MultibandSpatial extends ValidationUtilities with LoggingSummary {
-  @transient lazy val logger: Logger = Logger.getLogger(this.getClass)
-
   def sizeAndEquality(
     metadata: TileLayerMetadata[SpatialKey],
     jConfig: JConfig,
     layerId: LayerId,
-    dt: Option[DateTime],
+    dt: Option[ZonedDateTime],
     read: (LayerId, Option[Extent]) => MultibandTileLayerRDD[SpatialKey]
   ) = {
     val expected = MultibandGeoTiff(jConfig.validationOptions.tiffLocal)
@@ -55,7 +53,7 @@ object MultibandSpatial extends ValidationUtilities with LoggingSummary {
       metadata: TileLayerMetadata[SpatialKey],
       jConfig: JConfig,
       layerId: LayerId,
-      dt: Option[DateTime],
+      dt: Option[ZonedDateTime],
       read: (LayerId, Option[Extent]) => MultibandTileLayerRDD[SpatialKey]
   ) {
     // The basic steps:

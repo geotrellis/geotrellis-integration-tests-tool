@@ -6,11 +6,10 @@ import geotrellis.util.{LoggingSummary, SparkSupport}
 import geotrellis.config._
 import geotrellis.cli.MainOptions
 
-import cats.std.all._
+import cats.instances.all._
 import org.apache.log4j.Logger
 
 object Main extends LoggingSummary {
-  @transient lazy val logger: Logger = Logger.getLogger(this.getClass)
 
   def main(args: Array[String]): Unit = {
     MainOptions.parse(args) match {

@@ -10,16 +10,15 @@ import geotrellis.spark.io.index.KeyIndexMethod
 import geotrellis.spark.tiling.TilerKeyMethods
 import geotrellis.vector.ProjectedExtent
 import geotrellis.util.Component
+
 import org.apache.spark.rdd.RDD
-import org.slf4j.{Logger, LoggerFactory}
+import com.typesafe.scalalogging.LazyLogging
 import shapeless.{::, HNil, Poly5}
 import spray.json.JsonFormat
 
 import scala.reflect.ClassTag
 
-object PolyIngest extends Poly5 {
-  @transient lazy val logger: Logger = LoggerFactory.getLogger(this.getClass)
-
+object PolyIngest extends Poly5 with LazyLogging {
   type In[K, I, V] = String :: KeyIndexMethod[K] :: JIngestOptions :: RDD[(I, V)] :: LayerWriter[LayerId] :: HNil
 
   implicit def singleband[

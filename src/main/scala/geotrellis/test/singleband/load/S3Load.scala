@@ -13,6 +13,6 @@ trait S3Load { self: TestEnvironment[ProjectedExtent, SpatialKey, Tile] with S3S
   def loadTiles: RDD[(ProjectedExtent, Tile)] = {
     logger.info("loading tiles from s3...")
     val s3Input = new GeoTiffS3Input()
-    s3Input(loadParams)
+    s3Input(etlConf)
   }
 }

@@ -9,19 +9,17 @@ import geotrellis.vector.Extent
 import geotrellis.config.json.dataset.JConfig
 import geotrellis.util.{Colors, LoggingSummary}
 
-import org.joda.time.DateTime
+import java.time.ZonedDateTime
 import org.apache.log4j.Logger
 
 import scala.math._
 
 object SinglebandSpatial extends ValidationUtilities with LoggingSummary {
-  @transient lazy val logger: Logger = Logger.getLogger(this.getClass)
-
   def sizeAndEquality(
     metadata: TileLayerMetadata[SpatialKey],
     jConfig: JConfig,
     layerId: LayerId,
-    dt: Option[DateTime],
+    dt: Option[ZonedDateTime],
     read: (LayerId, Option[Extent]) => TileLayerRDD[SpatialKey]
   ) = {
     val expected = SinglebandGeoTiff(jConfig.validationOptions.tiffLocal)
@@ -51,7 +49,7 @@ object SinglebandSpatial extends ValidationUtilities with LoggingSummary {
       metadata: TileLayerMetadata[SpatialKey],
       jConfig: JConfig,
       layerId: LayerId,
-      dt: Option[DateTime],
+      dt: Option[ZonedDateTime],
       read: (LayerId, Option[Extent]) => TileLayerRDD[SpatialKey]
   ) {
     // The basic steps:

@@ -12,6 +12,6 @@ trait HadoopLoad { self: TestEnvironment[ProjectedExtent, SpatialKey, Tile] =>
   def loadTiles: RDD[(ProjectedExtent, Tile)] = {
     logger.info("loading tiles from hdfs...")
     val hadoopInput = new GeoTiffHadoopInput()
-    hadoopInput(loadParams)
+    hadoopInput(etlConf)
   }
 }

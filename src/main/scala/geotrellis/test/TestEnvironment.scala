@@ -15,20 +15,20 @@ import geotrellis.util._
 import geotrellis.util.Colors._
 import geotrellis.vector.{Extent, ProjectedExtent}
 
+import java.time.ZonedDateTime
 import org.apache.spark.rdd.RDD
-import org.joda.time.DateTime
 import spray.json.JsonFormat
 import shapeless.poly._
 import spire.syntax.cfor._
 
 import scala.reflect.ClassTag
-import scala.util.{Try, Success, Failure}
+import scala.util.{Failure, Success, Try}
 
 abstract class TestEnvironment[
   I: ClassTag: ? => TilerKeyMethods[I, K]: Component[?, ProjectedExtent],
   K: SpatialComponent: Boundable: AvroRecordCodec: ClassTag,
   V <: CellGrid: AvroRecordCodec: ClassTag
-](@transient val jConfig: JConfig, val jCredentials: JCredentials)(implicit @transient kf: JsonFormat[K]) extends SparkSupport with ValidationUtilities with LoggingSummary with Serializable {
+](@transient val jConfig: JConfig, val jCredentials: JCredentials)(@transient implicit val kf: JsonFormat[K]) extends SparkSupport with ValidationUtilities with LoggingSummary with Serializable {
   type M = TileLayerMetadata[K]
 
   val writer: LayerWriter[LayerId]
@@ -42,15 +42,12 @@ abstract class TestEnvironment[
 
   def loadTiles: RDD[(I, V)]
 
-  val layerName         = jConfig.name
-  val loadParams        = jConfig.getLoadParams
-  val ingestParams      = jConfig.getIngestParams
-  val loadCredentials   = jCredentials.getLoad(jConfig)
-  val ingestCredentials = jCredentials.getIngest(jConfig)
+  val etlConf   = jConfig.getEtlCfg(jCredentials)
+  val layerName = jConfig.name
 
-  lazy val layerId        = attributeStore.layerIds.filter(_.name == layerName).sortWith(_.zoom > _.zoom).head
-  lazy val copyLayerId    = layerId.copy(name = s"${layerName}-copy-${DateTime.now.getMillis}")
-  lazy val moveLayerId    = layerId.copy(name = s"${layerName}-move-${DateTime.now.getMillis}")
+  lazy val layerId     = attributeStore.layerIds.filter(_.name == layerName).sortWith(_.zoom > _.zoom).head
+  lazy val copyLayerId = layerId.copy(name = s"${layerName}-copy-${ZonedDateTime.now.toInstant.toEpochMilli}")
+  lazy val moveLayerId = layerId.copy(name = s"${layerName}-move-${ZonedDateTime.now.toInstant.toEpochMilli}")
 
   def read(append: Boolean = true)(layerId: LayerId, extent: Option[Extent] = None): RDD[(K, V)] with Metadata[M] =
     withSpeedMetrics(s"${jConfig.name}.read", append) {
@@ -69,18 +66,18 @@ abstract class TestEnvironment[
   def combine(layerId: LayerId)(implicit pc: Case[PolyCombine.type, PolyCombine.In[K, V, M]]) =
     withSpeedMetrics(s"${jConfig.name}.combine") {
       logger.info(green(s"combineLayer ${layerId}..."))
-      val rdd = read(false)(layerId)
+      val rdd = read(append = false)(layerId)
       PolyCombine(layerId, rdd)
     }
 
-  def validate(layerId: LayerId, dt: Option[DateTime])
+  def validate(layerId: LayerId, dt: Option[ZonedDateTime])
               (implicit pv: Case.Aux[PolyValidate.type, PolyValidate.In[K, V, M], PolyValidate.Out[V]],
                         rw: Case[PolyWrite.type, PolyWrite.In[Option, V]],
                         lw: Case[PolyWrite.type, PolyWrite.In[List, V]]): Unit =
     withSpeedMetrics(s"${jConfig.name}.validate") {
       val metadata = attributeStore.readMetadata[TileLayerMetadata[K]](layerId)
       val (ingestedRaster, expectedRasterResampled, diffRasters) =
-        PolyValidate(metadata, jConfig, layerId, dt, read(false) _)
+        PolyValidate(metadata, jConfig, layerId, dt, read(append = false) _)
 
       PolyWrite(ingestedRaster, s"${jConfig.validationOptions.tmpDir}ingested.${jConfig.name}")
       PolyWrite(expectedRasterResampled, s"${jConfig.validationOptions.tmpDir}expected.${jConfig.name}")
@@ -160,7 +157,7 @@ abstract class TestEnvironment[
       else errorAppender(s"New validation test failed")
     }
 
-  def validate(dt: Option[DateTime])
+  def validate(dt: Option[ZonedDateTime])
               (implicit pv: Case.Aux[PolyValidate.type, PolyValidate.In[K, V, M], PolyValidate.Out[V]],
                         rw: Case[PolyWrite.type, PolyWrite.In[Option, V]],
                         lw: Case[PolyWrite.type, PolyWrite.In[List, V]]): Unit = validate(layerId, dt)
@@ -171,9 +168,9 @@ abstract class TestEnvironment[
 
   def copy(id: LayerId, cid: LayerId): Unit =
     withSpeedMetrics(s"${jConfig.name}.copy") {
-      val c = read(false)(id).count()
+      val c = read(append = false)(id).count()
       copier.copy[K, V, M](id, cid)
-      val cc = read(false)(cid).count()
+      val cc = read(append = false)(cid).count()
 
       if (c == cc) appendLog(s"${jConfig.name}.copy")("Copy test success")
       else appendLog(s"${jConfig.name}.copy", red(_))(s"Copy test failed ($c != $cc)")
@@ -183,9 +180,9 @@ abstract class TestEnvironment[
 
   def move(id: LayerId, mid: LayerId): Unit =
     withSpeedMetrics(s"${jConfig.name}.move") {
-      val c = read(false)(id).count()
+      val c = read(append = false)(id).count()
       mover.move[K, V, M](id, mid)
-      val cc = read(false)(mid).count()
+      val cc = read(append = false)(mid).count()
 
       if (c == cc) appendLog(s"${jConfig.name}.move")("Move test success")
       else appendLog(s"${jConfig.name}.move", red(_))(s"Move test failed ($c != $cc)")
@@ -195,9 +192,9 @@ abstract class TestEnvironment[
 
   def reindex(id: LayerId, keyIndexMethod: KeyIndexMethod[K]): Unit =
     withSpeedMetrics(s"${jConfig.name}.reindex") {
-      val c = read(false)(id).count()
+      val c = read(append = false)(id).count()
       reindexer.reindex[K, V, M](id, keyIndexMethod)
-      val cc = read(false)(id).count()
+      val cc = read(append = false)(id).count()
 
       if (c == cc) appendLog(s"${jConfig.name}.reindex")("Reindex test success")
       else appendLog(s"${jConfig.name}.reindex", red(_))(s"Reindex test failed ($c != $cc)")
@@ -208,7 +205,7 @@ abstract class TestEnvironment[
   def update(id: LayerId, rdd: RDD[(K, V)] with Metadata[M]): Unit =
     withSpeedMetrics(s"${jConfig.name}.update") {
       updater.update[K, V, M](id, rdd)
-      val urdd = read(false)(id)
+      val urdd = read(append = false)(id)
 
       val (c, cc) = rdd.count() -> urdd.count()
       if (c <= cc) appendLog(s"${jConfig.name}.update")("Update test success")
@@ -222,7 +219,7 @@ abstract class TestEnvironment[
       deleter.delete(id)
       try reader.read[K, V, M](id) catch {
         case e: LayerNotFoundError => appendLog(s"${jConfig.name}.delete")("Delete test success")
-        case _ => appendLog(s"${jConfig.name}.delete", red(_))(s"Delete test failed")
+        case _: Throwable => appendLog(s"${jConfig.name}.delete", red(_))(s"Delete test failed")
       }
     }
 
