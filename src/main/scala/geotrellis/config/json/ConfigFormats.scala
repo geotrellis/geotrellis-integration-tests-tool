@@ -1,13 +1,14 @@
 package geotrellis.config.json
 
-import java.time.{LocalDate, ZoneOffset, ZonedDateTime}
-
 import geotrellis.config._
 import geotrellis.spark.etl.config.BackendProfile
 import geotrellis.spark.etl.config.json._
+
 import spray.json.RootJsonFormat
 import spray.json._
 import spray.json.DefaultJsonProtocol._
+
+import java.time.{LocalDate, ZoneOffset, ZonedDateTime}
 
 trait ConfigFormats {
   implicit object ZonedDateTimeFormat extends RootJsonFormat[ZonedDateTime] {

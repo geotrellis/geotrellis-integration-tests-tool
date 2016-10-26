@@ -5,11 +5,9 @@ import geotrellis.test._
 import geotrellis.util._
 import geotrellis.config._
 
-import scalaz._
 import scalaz.Scalaz._
 
 object Main extends LoggingSummary {
-
   def main(args: Array[String]): Unit = {
     implicit val sc = SparkSupport.sparkContext()
     val (ss, sm, ts, tm) = Dataset.split(TestsEtlConf(args))

@@ -22,8 +22,6 @@ spark-submit --conf spark.driver.extraJavaOptions="-Dlog4j.configuration=file://
 
 ## Build
 
-To build you can just run 
-
 ```bash
 ./sbt assembly
 ```

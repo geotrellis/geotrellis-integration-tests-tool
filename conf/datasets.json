@@ -33,7 +33,7 @@
     },
     "attributes": {
       "tileType": "singleband",
-      "ingestType": "temporal"
+      "ingestType": "spatial"
     }
   },
   {
@@ -70,7 +70,7 @@
     },
     "attributes": {
       "tileType": "singleband",
-      "ingestType": "temporal"
+      "ingestType": "spatial"
     }
   },
   {
@@ -107,7 +107,7 @@
     },
     "attributes": {
       "tileType": "singleband",
-      "ingestType": "temporal"
+      "ingestType": "spatial"
     }
   },
   {

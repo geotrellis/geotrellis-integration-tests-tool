@@ -6,7 +6,6 @@ import geotrellis.config.json._
 
 import org.apache.spark.SparkContext
 import com.github.fge.jackson.JsonLoader
-import com.github.fge.jsonschema.main.JsonSchemaFactory
 import spray.json._
 
 object TestsEtlConf extends TestsEtlConf
@@ -27,7 +26,6 @@ trait TestsEtlConf extends ConfigParse {
 
   val requiredFields = Set('datasets, 'backendProfiles)
 
-  val schemaFactory         = JsonSchemaFactory.byDefault()
   val backendProfilesSchema = schemaFactory.getJsonSchema(JsonLoader.fromResource("/backend-profiles-schema.json"))
   val datasetsSchema        = schemaFactory.getJsonSchema(JsonLoader.fromResource("/datasets-schema.json"))
 
