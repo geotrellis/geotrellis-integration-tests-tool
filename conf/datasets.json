@@ -1,134 +1,154 @@
 [
   {
-    "name": "nexspatial",
-    "type": {
-      "ingestCredentials": "gis",
-      "loadBackend": "hadoop",
-      "ingestBackend": "accumulo",
-      "tileType": "singleband",
-      "ingestType": "spatial"
-    },
-    "path": {
-      "load": "/geotrellis-integration-load/",
-      "ingest": "gtintegration"
-    },
-    "ingestOptions": {
-      "resampleMethod": "nearest-neighbor",
-      "layoutScheme": {
-        "type": "zoomed",
-        "crs": "EPSG:3857",
-        "tileSize": 256,
-        "resolutionThreshold": 0.1
+    "input": {
+      "name": "nexspatial",
+      "format": "geotiff",
+      "backend": {
+        "type": "hadoop",
+        "path": "/geotrellis-integration-load/"
       },
+      "cache": "NONE"
+    },
+    "output": {
+      "backend": {
+        "type": "accumulo",
+        "path": "gtintegration",
+        "profile": "accumulo-local"
+      },
+      "reprojectMethod": "buffered",
+      "tileSize": 256,
+      "pyramid": true,
+      "resampleMethod": "nearest-neighbor",
       "keyIndexMethod": {
         "type": "zorder"
-      }
+      },
+      "layoutScheme": "zoomed",
+      "crs": "EPSG:3857"
     },
-    "validationOptions": {
+    "validation": {
       "sampleScale": 0.3,
       "resolutionThreshold": 0.1,
       "tmpDir": "/data/tmp/",
       "tiffLocal": "/data/tmp/tasmax_amon_BCSD_rcp26_r1i1p1_CONUS_CCSM4_200601-201012-200601120000_0_0.tif"
-    }
-  },
-  {
-    "name":"nexspatialc",
-    "type":{
-      "ingestCredentials":"cgis",
-      "loadBackend":"hadoop",
-      "ingestBackend":"cassandra",
-      "tileType":"singleband",
-      "ingestType":"spatial"
     },
-    "path":{
-      "load":"/geotrellis-integration-load/",
-      "ingest":"gtintegration"
-    },
-    "ingestOptions":{
-      "resampleMethod":"nearest-neighbor",
-      "layoutScheme":{
-        "type":"zoomed",
-        "crs":"EPSG:3857",
-        "tileSize":256,
-        "resolutionThreshold":0.1
-      },
-      "keyIndexMethod":{
-        "type":"zorder"
-      }
-    },
-    "validationOptions":{
-      "sampleScale":0.3,
-      "resolutionThreshold":0.1,
-      "tmpDir":"/data/tmp/",
-      "tiffLocal":"/data/tmp/tasmax_amon_BCSD_rcp26_r1i1p1_CONUS_CCSM4_200601-201012-200601120000_0_0.tif"
-    }
-  },
-  {
-    "name":"nexspatials",
-    "type":{
-      "ingestCredentials":"gis",
-      "loadBackend":"s3",
-      "ingestBackend":"accumulo",
-      "tileType":"singleband",
-      "ingestType":"spatial"
-    },
-    "path": {
-      "load": "s3://geotrellis-test/nex-geotiff",
-      "ingest": "gtintegrations3"
-    },
-    "ingestOptions": {
-      "resampleMethod": "nearest-neighbor",
-      "layoutScheme": {
-        "type": "zoomed",
-        "crs": "EPSG:3857",
-        "tileSize": 256,
-        "resolutionThreshold": 0.1
-      },
-      "keyIndexMethod": {
-        "type": "zorder"
-      }
-    },
-    "validationOptions": {
-      "sampleScale": 0.3,
-      "resolutionThreshold": 0.1,
-      "tmpDir": "/data/tmp/",
-      "tiffLocal": "/data/tmp/tasmax_amon_BCSD_rcp26_r1i1p1_CONUS_CCSM4_200601-201012-200601120000_0_0.tif"
-    }
-  },
-  {
-    "name": "nextemporal",
-    "type": {
-      "ingestCredentials": "gis",
-      "loadBackend": "hadoop",
-      "ingestBackend": "accumulo",
+    "attributes": {
       "tileType": "singleband",
       "ingestType": "temporal"
-    },
-    "path": {
-      "load": "/geotrellis-integration-load/",
-      "ingest": "gtintegrationtemporal"
-    },
-    "ingestOptions": {
-      "resampleMethod": "bilinear",
-      "layoutScheme": {
-        "type": "zoomed",
-        "crs": "EPSG:3857",
-        "tileSize": 256,
-        "resolutionThreshold": 0.1
+    }
+  },
+  {
+    "input": {
+      "name": "nexspatialc",
+      "format": "geotiff",
+      "backend": {
+        "type": "hadoop",
+        "path": "/geotrellis-integration-load/"
       },
+      "cache": "NONE"
+    },
+    "output": {
+      "backend": {
+        "type": "cassandra",
+        "path": "gtintegration",
+        "profile": "cassandra-local"
+      },
+      "reprojectMethod": "buffered",
+      "tileSize": 256,
+      "pyramid": true,
+      "resampleMethod": "nearest-neighbor",
+      "keyIndexMethod": {
+        "type": "zorder"
+      },
+      "layoutScheme": "zoomed",
+      "crs": "EPSG:3857"
+    },
+    "validation": {
+      "sampleScale": 0.3,
+      "resolutionThreshold": 0.1,
+      "tmpDir": "/data/tmp/",
+      "tiffLocal": "/data/tmp/tasmax_amon_BCSD_rcp26_r1i1p1_CONUS_CCSM4_200601-201012-200601120000_0_0.tif"
+    },
+    "attributes": {
+      "tileType": "singleband",
+      "ingestType": "temporal"
+    }
+  },
+  {
+    "input": {
+      "name": "nexspatials",
+      "format": "geotiff",
+      "backend": {
+        "type": "s3",
+        "path": "s3://geotrellis-test/nex-geotiff"
+      },
+      "cache": "NONE"
+    },
+    "output": {
+      "backend": {
+        "type": "accumulo",
+        "path": "gtintegrations3",
+        "profile": "accumulo-local"
+      },
+      "reprojectMethod": "buffered",
+      "tileSize": 256,
+      "pyramid": true,
+      "resampleMethod": "nearest-neighbor",
+      "keyIndexMethod": {
+        "type": "zorder"
+      },
+      "layoutScheme": "zoomed",
+      "crs": "EPSG:3857"
+    },
+    "validation": {
+      "sampleScale": 0.3,
+      "resolutionThreshold": 0.1,
+      "tmpDir": "/data/tmp/",
+      "tiffLocal": "/data/tmp/tasmax_amon_BCSD_rcp26_r1i1p1_CONUS_CCSM4_200601-201012-200601120000_0_0.tif"
+    },
+    "attributes": {
+      "tileType": "singleband",
+      "ingestType": "temporal"
+    }
+  },
+  {
+    "input": {
+      "name": "nextemporal",
+      "format": "geotiff",
+      "backend": {
+        "type": "hadoop",
+        "path": "/geotrellis-integration-load/"
+      },
+      "cache": "NONE"
+    },
+    "output": {
+      "backend": {
+        "type": "accumulo",
+        "path": "gtintegrationtemporal",
+        "profile": "accumulo-local"
+      },
+      "reprojectMethod": "buffered",
+      "tileSize": 256,
+      "pyramid": true,
+      "resampleMethod": "nearest-neighbor",
       "keyIndexMethod": {
         "type": "zorder",
         "timeTag": "ISO_TIME",
         "timeFormat": "yyyy-MM-dd'T'HH:mm:ss",
         "temporalResolution": 1314000000
-      }
+      },
+      "layoutScheme": "zoomed",
+      "crs": "EPSG:3857"
     },
-    "validationOptions": {
+    "validation": {
       "sampleScale": 0.3,
       "resolutionThreshold": 0.1,
       "dateTime": "2006-01-16T12:00:00",
       "tmpDir": "/data/tmp/",
       "tiffLocal": "/data/tmp/tasmax_amon_BCSD_rcp26_r1i1p1_CONUS_CCSM4_200601-201012-200601120000_0_0.tif"
+    },
+    "attributes": {
+      "tileType": "singleband",
+      "ingestType": "temporal"
     }
   }
 ]

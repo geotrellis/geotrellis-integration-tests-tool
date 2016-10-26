@@ -1,5 +1,5 @@
 name := "geotrellis-integration-tests"
-version := "0.1.1-SNAPSHOT"
+version := "1.0.0-SNAPSHOT"
 scalaVersion := "2.11.8"
 organization := "com.azavea"
 licenses := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0.html"))
@@ -23,39 +23,24 @@ resolvers ++= Seq(
   Resolver.sonatypeRepo("releases")
 )
 
-val gtVersion    = "1.0.0-SNAPSHOT"
-val circeVersion = "0.5.4"
-
-val geotrellis = Seq(
-  "com.azavea.geotrellis" %% "geotrellis-accumulo"  % gtVersion,
-  "com.azavea.geotrellis" %% "geotrellis-s3"        % gtVersion,
-  "com.azavea.geotrellis" %% "geotrellis-cassandra" % gtVersion,
-  "com.azavea.geotrellis" %% "geotrellis-spark"     % gtVersion,
-  "com.azavea.geotrellis" %% "geotrellis-spark-etl" % gtVersion
-)
-
-val circe = Seq(
-  "io.circe" %% "circe-core"    % circeVersion,
-  "io.circe" %% "circe-generic" % circeVersion,
-  "io.circe" %% "circe-parser"  % circeVersion
-)
+val geotrellisVersion = "1.0.0-SNAPSHOT"
 
 libraryDependencies ++= Seq(
-  "com.github.scopt"  %% "scopt"        % "3.5.0",
-  "com.chuusai"       %% "shapeless"    % "2.3.0",
-  "org.apache.spark"  %% "spark-core"   % "2.0.1" % "provided",
-  "org.apache.hadoop" % "hadoop-client" % "2.7.3" % "provided",
-  "com.log4js3"       % "log4j-s3"      % "0.0.4",
-  "org.scalatest"     %% "scalatest"    % "3.0.0" % "test"
-) ++ geotrellis ++ circe
+  "com.azavea.geotrellis" %% "geotrellis-spark-etl"   % geotrellisVersion,
+  "com.chuusai"           %% "shapeless"    % "2.3.0",
+  "org.apache.spark"      %% "spark-core"   % "2.0.1" % "provided",
+  "org.apache.hadoop"     % "hadoop-client" % "2.7.3" % "provided",
+  "com.log4js3"           % "log4j-s3"      % "0.0.4",
+  "org.scalatest"         %% "scalatest"    % "3.0.0" % "test"
+)
 
 addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.2" cross CrossVersion.binary)
 
 addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
 
 sourceGenerators in Compile <+= (sourceManaged in Compile, version, name) map { (d, v, n) =>
-  val file = d / "geotrellis/cli/Info.scala"
-  IO.write(file, """package geotrellis.cli
+  val file = d / "geotrellis/config/Info.scala"
+  IO.write(file, """package geotrellis.config
                    |object Info {
                    |  val version = "%s"
                    |  val name    = "%s"
@@ -67,11 +52,19 @@ sourceGenerators in Compile <+= (sourceManaged in Compile, version, name) map { 
 test in assembly := {}
 
 assemblyMergeStrategy in assembly := {
-  case "reference.conf" => MergeStrategy.concat
-  case "application.conf" => MergeStrategy.concat
-  case "META-INF/MANIFEST.MF" => MergeStrategy.discard
-  case "META-INF\\MANIFEST.MF" => MergeStrategy.discard
-  case "META-INF/ECLIPSEF.RSA" => MergeStrategy.discard
-  case "META-INF/ECLIPSEF.SF" => MergeStrategy.discard
+  case "reference.conf" | "application.conf"            => MergeStrategy.concat
+  case "META-INF/MANIFEST.MF" | "META-INF\\MANIFEST.MF" => MergeStrategy.discard
+  case "META-INF/ECLIPSEF.RSA" | "META-INF/ECLIPSEF.SF" => MergeStrategy.discard
   case _ => MergeStrategy.first
+}
+
+assemblyShadeRules in assembly := {
+  val shadePackage = "com.azavea.shaded.demo"
+  Seq(
+    ShadeRule.rename("com.google.common.**" -> s"$shadePackage.google.common.@1")
+      .inLibrary(
+        "com.azavea.geotrellis" %% "geotrellis-cassandra" % geotrellisVersion,
+        "com.github.fge" % "json-schema-validator" % "2.2.6"
+      ).inAll
+  )
 }

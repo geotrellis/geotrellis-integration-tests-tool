@@ -1,6 +1,6 @@
 package geotrellis.util
 
-import geotrellis.config.json.dataset.JConfig
+import geotrellis.config.Dataset
 import geotrellis.spark.io.hadoop.formats.TemporalGeoTiffInputFormat
 import geotrellis.spark.io.kryo.KryoRegistrator
 import geotrellis.spark.util.SparkUtils
@@ -33,9 +33,9 @@ object SparkSupport {
     sc
   }
 
-  def configureTime(conf: JConfig)(implicit sc: SparkContext): SparkContext = {
-    conf.ingestOptions.keyIndexMethod.timeTag.foreach(TemporalGeoTiffInputFormat.setTimeTag(sc.hadoopConfiguration, _))
-    conf.ingestOptions.keyIndexMethod.timeFormat.foreach(TemporalGeoTiffInputFormat.setTimeFormat(sc.hadoopConfiguration, _))
+  def configureTime(dataset: Dataset)(implicit sc: SparkContext): SparkContext = {
+    dataset.output.keyIndexMethod.timeTag.foreach(TemporalGeoTiffInputFormat.setTimeTag(sc.hadoopConfiguration, _))
+    dataset.output.keyIndexMethod.timeFormat.foreach(TemporalGeoTiffInputFormat.setTimeFormat(sc.hadoopConfiguration, _))
 
     sc
   }

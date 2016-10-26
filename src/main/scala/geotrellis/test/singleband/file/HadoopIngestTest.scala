@@ -1,20 +1,19 @@
 package geotrellis.test.singleband.file
 
-import geotrellis.config.json.backend.JCredentials
+import geotrellis.config.Dataset
 import geotrellis.raster.Tile
 import geotrellis.spark._
 import geotrellis.spark.io._
 import geotrellis.test.FileTest
 import geotrellis.test.singleband.load.HadoopLoad
 import geotrellis.vector.ProjectedExtent
-import geotrellis.config.json.dataset.JConfig
 
 import org.apache.spark.SparkContext
 
-abstract class HadoopIngestTest(jConfig: JConfig, jCredentials: JCredentials) extends FileTest[ProjectedExtent, SpatialKey, Tile](jConfig, jCredentials) with HadoopLoad
+abstract class HadoopIngestTest(dataset: Dataset) extends FileTest[ProjectedExtent, SpatialKey, Tile](dataset) with HadoopLoad
 
 object HadoopIngestTest {
-  def apply(implicit jConfig: JConfig, jCredentials: JCredentials, _sc: SparkContext) = new HadoopIngestTest(jConfig, jCredentials) {
+  def apply(implicit dataset: Dataset, _sc: SparkContext) = new HadoopIngestTest(dataset) {
     @transient implicit val sc = _sc
   }
 }
