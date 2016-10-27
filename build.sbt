@@ -23,7 +23,7 @@ resolvers ++= Seq(
   Resolver.sonatypeRepo("releases")
 )
 
-val geotrellisVersion = "1.0.0-SNAPSHOT"
+val geotrellisVersion = "1.0.0-cd1ca27"
 
 libraryDependencies ++= Seq(
   "com.azavea.geotrellis" %% "geotrellis-spark-etl"   % geotrellisVersion,
