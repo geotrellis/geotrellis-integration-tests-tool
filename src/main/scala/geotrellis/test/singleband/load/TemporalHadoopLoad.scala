@@ -11,6 +11,6 @@ trait TemporalHadoopLoad { self: TestEnvironment[TemporalProjectedExtent, SpaceT
   def loadTiles: RDD[(TemporalProjectedExtent, Tile)] = {
     logger.info("loading tiles from hdfs...")
     val hadoopInput = new TemporalGeoTiffHadoopInput()
-    hadoopInput(loadParams)
+    hadoopInput(etlConf)
   }
 }

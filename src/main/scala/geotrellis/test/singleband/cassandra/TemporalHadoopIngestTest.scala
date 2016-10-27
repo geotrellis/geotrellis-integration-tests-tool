@@ -1,7 +1,6 @@
 package geotrellis.test.singleband.cassandra
 
-import geotrellis.config.json.backend.JCredentials
-import geotrellis.config.json.dataset.JConfig
+import geotrellis.config.Dataset
 import geotrellis.raster.Tile
 import geotrellis.spark._
 import geotrellis.spark.io._
@@ -11,10 +10,10 @@ import geotrellis.util.SparkSupport
 
 import org.apache.spark.SparkContext
 
-abstract class TemporalHadoopIngestTest(jConfig: JConfig, jCredentials: JCredentials) extends CassandraTest[TemporalProjectedExtent, SpaceTimeKey, Tile](jConfig, jCredentials) with TemporalHadoopLoad
+abstract class TemporalHadoopIngestTest(dataset: Dataset) extends CassandraTest[TemporalProjectedExtent, SpaceTimeKey, Tile](dataset) with TemporalHadoopLoad
 
 object TemporalHadoopIngestTest {
-  def apply(implicit jConfig: JConfig, jCredentials: JCredentials, _sc: SparkContext) = new TemporalHadoopIngestTest(jConfig, jCredentials) {
-    @transient implicit val sc = SparkSupport.configureTime(jConfig)(_sc)
+  def apply(implicit dataset: Dataset, _sc: SparkContext) = new TemporalHadoopIngestTest(dataset) {
+    @transient implicit val sc = SparkSupport.configureTime(dataset)(_sc)
   }
 }

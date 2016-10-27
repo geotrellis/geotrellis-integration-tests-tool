@@ -1,16 +1,12 @@
 package geotrellis.util
 
-import geotrellis.config.json.backend.JAccumulo
-import geotrellis.spark.io.accumulo.AccumuloInstance
+import geotrellis.spark.etl.config.{AccumuloPath, AccumuloProfile}
 
 trait AccumuloSupport extends BackendSupport {
-  lazy val table = ingestParams("table")
-  @transient lazy val instance = ingestCredentials.collect { case credentials: JAccumulo =>
-    AccumuloInstance(
-      credentials.instance,
-      credentials.zookeepers,
-      credentials.user,
-      credentials.token
-    )
-  }.get
+  lazy val accumuloOutputPath = etlConf.output.backend.path match {
+    case p: AccumuloPath => p
+    case p => throw new Exception(s"Not valid output AccumuloPath: ${p}")
+  }
+
+  @transient lazy val instance = etlConf.output.backend.profile.collect { case profile: AccumuloProfile => profile.getInstance }.get
 }

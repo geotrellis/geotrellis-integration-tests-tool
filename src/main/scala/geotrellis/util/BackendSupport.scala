@@ -1,10 +1,7 @@
 package geotrellis.util
 
-import geotrellis.config.json.backend.JBackend
+import geotrellis.spark.etl.config.EtlConf
 
 trait BackendSupport {
-  val loadParams: Map[String, String]
-  val ingestParams: Map[String, String]
-  val loadCredentials: Option[JBackend]
-  val ingestCredentials: Option[JBackend]
+  val etlConf: EtlConf
 }

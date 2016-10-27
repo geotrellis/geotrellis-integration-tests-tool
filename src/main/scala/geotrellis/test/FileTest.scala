@@ -1,7 +1,6 @@
 package geotrellis.test
 
-import geotrellis.config.json.backend.JCredentials
-import geotrellis.config.json.dataset.JConfig
+import geotrellis.config.Dataset
 import geotrellis.raster.CellGrid
 import geotrellis.spark._
 import geotrellis.spark.io.avro.AvroRecordCodec
@@ -18,13 +17,13 @@ abstract class FileTest[
   I: ClassTag: ? => TilerKeyMethods[I, K]: Component[?, ProjectedExtent],
   K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag,
   V <: CellGrid: AvroRecordCodec: ClassTag
-](jConfig: JConfig, jCredentials: JCredentials) extends TestEnvironment[I, K, V](jConfig, jCredentials) with HadoopSupport {
-  @transient lazy val writer         = FileLayerWriter(hadoopIngestPath)
-  @transient lazy val reader         = FileLayerReader(hadoopIngestPath)
-  @transient lazy val copier         = FileLayerCopier(hadoopIngestPath)
-  @transient lazy val mover          = FileLayerMover(hadoopIngestPath)
-  @transient lazy val reindexer      = FileLayerReindexer(hadoopIngestPath)
-  @transient lazy val deleter        = FileLayerDeleter(hadoopIngestPath)
-  @transient lazy val updater        = FileLayerUpdater(hadoopIngestPath)
-  @transient lazy val attributeStore = FileAttributeStore(hadoopIngestPath)
+](dataset: Dataset) extends TestEnvironment[I, K, V](dataset) with HadoopSupport {
+  @transient lazy val writer         = FileLayerWriter(hadoopOutputPath.path)
+  @transient lazy val reader         = FileLayerReader(hadoopOutputPath.path)
+  @transient lazy val copier         = FileLayerCopier(hadoopOutputPath.path)
+  @transient lazy val mover          = FileLayerMover(hadoopOutputPath.path)
+  @transient lazy val reindexer      = FileLayerReindexer(hadoopOutputPath.path)
+  @transient lazy val deleter        = FileLayerDeleter(hadoopOutputPath.path)
+  @transient lazy val updater        = FileLayerUpdater(hadoopOutputPath.path)
+  @transient lazy val attributeStore = FileAttributeStore(hadoopOutputPath.path)
 }

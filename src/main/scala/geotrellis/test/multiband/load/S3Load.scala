@@ -13,6 +13,6 @@ trait S3Load { self: TestEnvironment[ProjectedExtent, SpatialKey, MultibandTile]
   def loadTiles: RDD[(ProjectedExtent, MultibandTile)] = {
     logger.info("loading tiles from s3...")
     val s3Input = new MultibandGeoTiffS3Input()
-    s3Input(loadParams)
+    s3Input(etlConf)
   }
 }

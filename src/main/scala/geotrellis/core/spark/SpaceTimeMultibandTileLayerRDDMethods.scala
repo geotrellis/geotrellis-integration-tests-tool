@@ -2,7 +2,8 @@ package geotrellis.core.spark
 
 import geotrellis.raster._
 import geotrellis.spark._
-import org.joda.time.DateTime
+
+import java.time.ZonedDateTime
 
 trait SpaceTimeMultibandTileLayerRDDMethods {
   val rdd: MultibandTileLayerRDD[SpaceTimeKey]
@@ -14,5 +15,5 @@ trait SpaceTimeMultibandTileLayerRDDMethods {
     }.stitch
   }
 
-  def stitch(dt: Option[DateTime]): Raster[MultibandTile] = stitch(TemporalKey(dt.get))
+  def stitch(dt: Option[ZonedDateTime]): Raster[MultibandTile] = stitch(TemporalKey(dt.get))
 }

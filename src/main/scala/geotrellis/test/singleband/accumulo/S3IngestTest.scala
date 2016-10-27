@@ -1,21 +1,20 @@
 package geotrellis.test.singleband.accumulo
 
-import geotrellis.config.json.backend.JCredentials
 import geotrellis.raster.Tile
 import geotrellis.spark._
 import geotrellis.spark.io._
 import geotrellis.test.AccumuloTest
 import geotrellis.test.singleband.load.S3Load
 import geotrellis.vector.ProjectedExtent
-import geotrellis.config.json.dataset.JConfig
+import geotrellis.config.Dataset
 import geotrellis.util.S3Support
 
 import org.apache.spark.SparkContext
 
-abstract class S3IngestTest(jConfig: JConfig, jCredentials: JCredentials) extends AccumuloTest[ProjectedExtent, SpatialKey, Tile](jConfig, jCredentials) with S3Support with S3Load
+abstract class S3IngestTest(dataset: Dataset) extends AccumuloTest[ProjectedExtent, SpatialKey, Tile](dataset) with S3Support with S3Load
 
 object S3IngestTest {
-  def apply(implicit jConfig: JConfig, jCredentials: JCredentials, _sc: SparkContext) = new S3IngestTest(jConfig, jCredentials) {
+  def apply(implicit dataset: Dataset, _sc: SparkContext) = new S3IngestTest(dataset) {
     @transient implicit val sc = _sc
   }
 }

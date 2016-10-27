@@ -1,0 +1,17 @@
+sudo: false
+
+language: scala
+
+jdk:
+- oraclejdk8
+
+scala:
+- 2.11.8
+
+cache:
+  directories:
+  - $HOME/.ivy2
+  - $HOME/.sbt
+
+script:
+- ./sbt compile

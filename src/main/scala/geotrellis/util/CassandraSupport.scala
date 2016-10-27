@@ -1,20 +1,12 @@
 package geotrellis.util
 
-import geotrellis.config.json.backend.JCassandra
-import geotrellis.spark.io.cassandra.BaseCassandraInstance
+import geotrellis.spark.etl.config.{CassandraPath, CassandraProfile}
 
 trait CassandraSupport extends BackendSupport {
-  lazy val table = ingestParams("table")
-  @transient lazy val instance = ingestCredentials.collect { case credentials: JCassandra =>
-    BaseCassandraInstance(
-      credentials.hosts,
-      credentials.user,
-      credentials.password,
-      credentials.replicationStrategy,
-      credentials.replicationFactor,
-      credentials.localDc,
-      credentials.usedHostsPerRemoteDc,
-      credentials.allowRemoteDCsForLocalConsistencyLevel
-    )
-  }.get
+  lazy val cassandraOutputPath = etlConf.output.backend.path match {
+    case p: CassandraPath => p
+    case p => throw new Exception(s"Not valid output CassandraPath: ${p}")
+  }
+
+  @transient lazy val instance = etlConf.output.backend.profile.collect { case profile: CassandraProfile => profile.getInstance }.get
 }

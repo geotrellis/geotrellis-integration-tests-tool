@@ -1,7 +1,6 @@
 package geotrellis.test
 
-import geotrellis.config.json.backend.{JCassandra, JCredentials}
-import geotrellis.config.json.dataset.JConfig
+import geotrellis.config.Dataset
 import geotrellis.raster.CellGrid
 import geotrellis.spark._
 import geotrellis.spark.io.cassandra._
@@ -9,6 +8,7 @@ import geotrellis.spark.io.avro.AvroRecordCodec
 import geotrellis.spark.tiling.TilerKeyMethods
 import geotrellis.util.{CassandraSupport, Component}
 import geotrellis.vector.ProjectedExtent
+
 import spray.json.JsonFormat
 
 import scala.reflect.ClassTag
@@ -17,8 +17,8 @@ abstract class CassandraTest[
   I: ClassTag: ? => TilerKeyMethods[I, K]: Component[?, ProjectedExtent],
   K: SpatialComponent: Boundable: AvroRecordCodec: JsonFormat: ClassTag,
   V <: CellGrid: AvroRecordCodec: ClassTag
-](jConfig: JConfig, jCredentials: JCredentials) extends TestEnvironment[I, K, V](jConfig, jCredentials) with CassandraSupport {
-  @transient lazy val writer         = CassandraLayerWriter(attributeStore, ingestCredentials.collect { case credentials: JCassandra => credentials.keyspace }.get, table)
+](dataset: Dataset) extends TestEnvironment[I, K, V](dataset) with CassandraSupport {
+  @transient lazy val writer         = CassandraLayerWriter(attributeStore, cassandraOutputPath.keyspace, cassandraOutputPath.table)
   @transient lazy val reader         = CassandraLayerReader(attributeStore)
   @transient lazy val deleter        = CassandraLayerDeleter(attributeStore)
   @transient lazy val updater        = CassandraLayerUpdater(attributeStore)

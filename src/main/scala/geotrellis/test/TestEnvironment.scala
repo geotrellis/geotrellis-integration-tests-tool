@@ -1,7 +1,5 @@
 package geotrellis.test
 
-import geotrellis.config.json.backend.JCredentials
-import geotrellis.config.json.dataset.{JConfig, JIngestOptions}
 import geotrellis.core.poly._
 import geotrellis.proj4.Transform
 import geotrellis.raster._
@@ -10,25 +8,28 @@ import geotrellis.spark.io.avro.AvroRecordCodec
 import geotrellis.spark.io.index.KeyIndexMethod
 import geotrellis.spark.tiling.TilerKeyMethods
 import geotrellis.spark._
+import geotrellis.spark.etl.config._
 import geotrellis.test.validation.ValidationUtilities
 import geotrellis.util._
 import geotrellis.util.Colors._
 import geotrellis.vector.{Extent, ProjectedExtent}
+import geotrellis.config.Dataset
 
 import org.apache.spark.rdd.RDD
-import org.joda.time.DateTime
 import spray.json.JsonFormat
 import shapeless.poly._
 import spire.syntax.cfor._
 
+import java.time.ZonedDateTime
+
 import scala.reflect.ClassTag
-import scala.util.{Try, Success, Failure}
+import scala.util.{Failure, Success, Try}
 
 abstract class TestEnvironment[
   I: ClassTag: ? => TilerKeyMethods[I, K]: Component[?, ProjectedExtent],
   K: SpatialComponent: Boundable: AvroRecordCodec: ClassTag,
   V <: CellGrid: AvroRecordCodec: ClassTag
-](@transient val jConfig: JConfig, val jCredentials: JCredentials)(implicit @transient kf: JsonFormat[K]) extends SparkSupport with ValidationUtilities with LoggingSummary with Serializable {
+](val dataset: Dataset)(@transient implicit val kf: JsonFormat[K]) extends SparkSupport with ValidationUtilities with LoggingSummary with Serializable {
   type M = TileLayerMetadata[K]
 
   val writer: LayerWriter[LayerId]
@@ -42,53 +43,50 @@ abstract class TestEnvironment[
 
   def loadTiles: RDD[(I, V)]
 
-  val layerName         = jConfig.name
-  val loadParams        = jConfig.getLoadParams
-  val ingestParams      = jConfig.getIngestParams
-  val loadCredentials   = jCredentials.getLoad(jConfig)
-  val ingestCredentials = jCredentials.getIngest(jConfig)
+  val etlConf   = dataset.getEtlConf
+  val layerName = dataset.input.name
 
-  lazy val layerId        = attributeStore.layerIds.filter(_.name == layerName).sortWith(_.zoom > _.zoom).head
-  lazy val copyLayerId    = layerId.copy(name = s"${layerName}-copy-${DateTime.now.getMillis}")
-  lazy val moveLayerId    = layerId.copy(name = s"${layerName}-move-${DateTime.now.getMillis}")
+  lazy val layerId     = attributeStore.layerIds.filter(_.name == layerName).sortWith(_.zoom > _.zoom).head
+  lazy val copyLayerId = layerId.copy(name = s"${layerName}-copy-${ZonedDateTime.now.toInstant.toEpochMilli}")
+  lazy val moveLayerId = layerId.copy(name = s"${layerName}-move-${ZonedDateTime.now.toInstant.toEpochMilli}")
 
   def read(append: Boolean = true)(layerId: LayerId, extent: Option[Extent] = None): RDD[(K, V)] with Metadata[M] =
-    withSpeedMetrics(s"${jConfig.name}.read", append) {
+    withSpeedMetrics(s"${layerName}.read", append) {
       logger.info(green(s"reading ${layerId}..."))
       extent.fold(reader.read[K, V, M](layerId))(e => reader.read[K, V, M](layerId, new LayerQuery[K, M].where(Intersects(e))))
     }
 
-  def ingest(layer: String, keyIndexMethod: KeyIndexMethod[K], jio: JIngestOptions)
+  def ingest(layer: String, keyIndexMethod: KeyIndexMethod[K], output: Output)
             (implicit pi: Case[PolyIngest.type, PolyIngest.In[K, I, V]]): Unit =
-    withSpeedMetrics(s"${jConfig.name}.ingest") {
+    withSpeedMetrics(s"${layerName}.ingest") {
       conf.set("io.map.index.interval", "1")
-      logger.info(s"ingesting tiles into ${jConfig.`type`.ingestBackend} (${layer})...")
-      PolyIngest(layer, keyIndexMethod, jio, loadTiles, writer)
+      logger.info(s"ingesting tiles into ${dataset.input.backend.`type`} (${layer})...")
+      PolyIngest(layer, keyIndexMethod, output, loadTiles, writer)
     }
 
   def combine(layerId: LayerId)(implicit pc: Case[PolyCombine.type, PolyCombine.In[K, V, M]]) =
-    withSpeedMetrics(s"${jConfig.name}.combine") {
+    withSpeedMetrics(s"${layerName}.combine") {
       logger.info(green(s"combineLayer ${layerId}..."))
-      val rdd = read(false)(layerId)
+      val rdd = read(append = false)(layerId)
       PolyCombine(layerId, rdd)
     }
 
-  def validate(layerId: LayerId, dt: Option[DateTime])
+  def validate(layerId: LayerId, dt: Option[ZonedDateTime])
               (implicit pv: Case.Aux[PolyValidate.type, PolyValidate.In[K, V, M], PolyValidate.Out[V]],
                         rw: Case[PolyWrite.type, PolyWrite.In[Option, V]],
                         lw: Case[PolyWrite.type, PolyWrite.In[List, V]]): Unit =
-    withSpeedMetrics(s"${jConfig.name}.validate") {
+    withSpeedMetrics(s"${layerName}.validate") {
       val metadata = attributeStore.readMetadata[TileLayerMetadata[K]](layerId)
       val (ingestedRaster, expectedRasterResampled, diffRasters) =
-        PolyValidate(metadata, jConfig, layerId, dt, read(false) _)
+        PolyValidate(metadata, dataset, layerId, dt, read(append = false) _)
 
-      PolyWrite(ingestedRaster, s"${jConfig.validationOptions.tmpDir}ingested.${jConfig.name}")
-      PolyWrite(expectedRasterResampled, s"${jConfig.validationOptions.tmpDir}expected.${jConfig.name}")
-      PolyWrite(diffRasters, s"${jConfig.validationOptions.tmpDir}diff.${jConfig.name}")
+      PolyWrite(ingestedRaster, s"${dataset.validation.tmpDir}ingested.${layerName}")
+      PolyWrite(expectedRasterResampled, s"${dataset.validation.tmpDir}expected.${layerName}")
+      PolyWrite(diffRasters, s"${dataset.validation.tmpDir}diff.${layerName}")
     }
 
   def ingest(implicit pi: Case[PolyIngest.type, PolyIngest.In[K, I, V]]): Unit =
-    ingest(layerName, jConfig.ingestOptions.keyIndexMethod.getKeyIndexMethod[K], jConfig.ingestOptions)
+    ingest(layerName, dataset.output.getKeyIndexMethod[K], dataset.output)
 
   def combine(implicit pc: Case[PolyCombine.type, PolyCombine.In[K, V, M]]): Unit = combine(layerId)
 
@@ -96,11 +94,11 @@ abstract class TestEnvironment[
 
   def newValidate(input: RDD[(I, V)], ingested: RDD[(K, V)] with Metadata[M])
                  (implicit pa: Case.Aux[PolyAssert.type, PolyAssert.In[V], PolyAssert.Out]): Unit =
-    withSpeedMetrics(s"${jConfig.name}.newValidate") {
+    withSpeedMetrics(s"${layerName}.newValidate") {
 
-      val threshold = jConfig.validationOptions.resolutionThreshold
+      val threshold = dataset.validation.resolutionThreshold
       val md = ingested.metadata
-      val validationExtent = randomExtentWithin(md.extent, jConfig.validationOptions.sampleScale)
+      val validationExtent = randomExtentWithin(md.extent, dataset.validation.sampleScale)
       val ingestedTiles = ingested.asRasters.filter(_._2.extent.intersects(validationExtent)).collect
       val inputTiles =
         input
@@ -144,8 +142,8 @@ abstract class TestEnvironment[
 
       val avgDelta = deltaSum / cellsCount
       val success = avgDelta < threshold
-      val infoAppender  = appendLog(s"${jConfig.name}.newValidate") _
-      val errorAppender = appendLog(s"${jConfig.name}.newValidate", red(_)) _
+      val infoAppender  = appendLog(s"${layerName}.newValidate") _
+      val errorAppender = appendLog(s"${layerName}.newValidate", red(_)) _
 
       infoAppender(s"threshold: ${threshold}")
       infoAppender(s"Cells count: ${cellsCount}")
@@ -160,69 +158,69 @@ abstract class TestEnvironment[
       else errorAppender(s"New validation test failed")
     }
 
-  def validate(dt: Option[DateTime])
+  def validate(dt: Option[ZonedDateTime])
               (implicit pv: Case.Aux[PolyValidate.type, PolyValidate.In[K, V, M], PolyValidate.Out[V]],
                         rw: Case[PolyWrite.type, PolyWrite.In[Option, V]],
                         lw: Case[PolyWrite.type, PolyWrite.In[List, V]]): Unit = validate(layerId, dt)
 
   def validate(implicit pv: Case.Aux[PolyValidate.type, PolyValidate.In[K, V, M], PolyValidate.Out[V]],
                           rw: Case[PolyWrite.type, PolyWrite.In[Option, V]],
-                          lw: Case[PolyWrite.type, PolyWrite.In[List, V]]): Unit = validate(jConfig.validationOptions.dateTime)
+                          lw: Case[PolyWrite.type, PolyWrite.In[List, V]]): Unit = validate(dataset.validation.dateTime)
 
   def copy(id: LayerId, cid: LayerId): Unit =
-    withSpeedMetrics(s"${jConfig.name}.copy") {
-      val c = read(false)(id).count()
+    withSpeedMetrics(s"${layerName}.copy") {
+      val c = read(append = false)(id).count()
       copier.copy[K, V, M](id, cid)
-      val cc = read(false)(cid).count()
+      val cc = read(append = false)(cid).count()
 
-      if (c == cc) appendLog(s"${jConfig.name}.copy")("Copy test success")
-      else appendLog(s"${jConfig.name}.copy", red(_))(s"Copy test failed ($c != $cc)")
+      if (c == cc) appendLog(s"${layerName}.copy")("Copy test success")
+      else appendLog(s"${layerName}.copy", red(_))(s"Copy test failed ($c != $cc)")
     }
 
   def copy: Unit = copy(layerId, copyLayerId)
 
   def move(id: LayerId, mid: LayerId): Unit =
-    withSpeedMetrics(s"${jConfig.name}.move") {
-      val c = read(false)(id).count()
+    withSpeedMetrics(s"${layerName}.move") {
+      val c = read(append = false)(id).count()
       mover.move[K, V, M](id, mid)
-      val cc = read(false)(mid).count()
+      val cc = read(append = false)(mid).count()
 
-      if (c == cc) appendLog(s"${jConfig.name}.move")("Move test success")
-      else appendLog(s"${jConfig.name}.move", red(_))(s"Move test failed ($c != $cc)")
+      if (c == cc) appendLog(s"${layerName}.move")("Move test success")
+      else appendLog(s"${layerName}.move", red(_))(s"Move test failed ($c != $cc)")
     }
 
   def move: Unit = move(copyLayerId, moveLayerId)
 
   def reindex(id: LayerId, keyIndexMethod: KeyIndexMethod[K]): Unit =
-    withSpeedMetrics(s"${jConfig.name}.reindex") {
-      val c = read(false)(id).count()
+    withSpeedMetrics(s"${layerName}.reindex") {
+      val c = read(append = false)(id).count()
       reindexer.reindex[K, V, M](id, keyIndexMethod)
-      val cc = read(false)(id).count()
+      val cc = read(append = false)(id).count()
 
-      if (c == cc) appendLog(s"${jConfig.name}.reindex")("Reindex test success")
-      else appendLog(s"${jConfig.name}.reindex", red(_))(s"Reindex test failed ($c != $cc)")
+      if (c == cc) appendLog(s"${layerName}.reindex")("Reindex test success")
+      else appendLog(s"${layerName}.reindex", red(_))(s"Reindex test failed ($c != $cc)")
     }
 
-  def reindex: Unit = reindex(moveLayerId, jConfig.ingestOptions.keyIndexMethod.getKeyIndexMethod[K])
+  def reindex: Unit = reindex(moveLayerId, dataset.output.getKeyIndexMethod[K])
 
   def update(id: LayerId, rdd: RDD[(K, V)] with Metadata[M]): Unit =
-    withSpeedMetrics(s"${jConfig.name}.update") {
+    withSpeedMetrics(s"${layerName}.update") {
       updater.update[K, V, M](id, rdd)
-      val urdd = read(false)(id)
+      val urdd = read(append = false)(id)
 
       val (c, cc) = rdd.count() -> urdd.count()
-      if (c <= cc) appendLog(s"${jConfig.name}.update")("Update test success")
-      else appendLog(s"${jConfig.name}.update", red(_))(s"Update test failed ($c >= $cc)")
+      if (c <= cc) appendLog(s"${layerName}.update")("Update test success")
+      else appendLog(s"${layerName}.update", red(_))(s"Update test failed ($c >= $cc)")
     }
 
   def update: Unit = update(moveLayerId, read(false)(moveLayerId))
 
   def delete(id: LayerId): Unit =
-    withSpeedMetrics(s"${jConfig.name}.delete") {
+    withSpeedMetrics(s"${layerName}.delete") {
       deleter.delete(id)
       try reader.read[K, V, M](id) catch {
-        case e: LayerNotFoundError => appendLog(s"${jConfig.name}.delete")("Delete test success")
-        case _ => appendLog(s"${jConfig.name}.delete", red(_))(s"Delete test failed")
+        case e: LayerNotFoundError => appendLog(s"${layerName}.delete")("Delete test success")
+        case _: Throwable => appendLog(s"${layerName}.delete", red(_))(s"Delete test failed")
       }
     }
 
@@ -234,7 +232,7 @@ abstract class TestEnvironment[
                    rw: Case[PolyWrite.type, PolyWrite.In[Option, V]],
                    lw: Case[PolyWrite.type, PolyWrite.In[List, V]],
                    pa: Case.Aux[PolyAssert.type, PolyAssert.In[V], PolyAssert.Out]) =
-    withSpeedMetrics(s"${jConfig.name}.run") {
+    withSpeedMetrics(s"${layerName}.run") {
       Try {
         beforeAll
         ingest
@@ -248,10 +246,10 @@ abstract class TestEnvironment[
         afterAll
       } match {
         case Success(s) => s
-        case Failure(e) => appendLog(s"${jConfig.name}.run", red(_))(s"Run test failed: ${LoggingSummary.stackTraceToString(e)}")
+        case Failure(e) => appendLog(s"${layerName}.run", red(_))(s"Run test failed: ${LoggingSummary.stackTraceToString(e)}")
       }
     }
 
   def beforeAll: Unit = { }
-  def afterAll: Unit = { printSummary(filter = Some(jConfig.name)) }
+  def afterAll: Unit = { printSummary(filter = Some(layerName)) }
 }

@@ -35,7 +35,7 @@ object LoggingSummary {
 trait LoggingSummary {
   import LoggingSummary._
 
-  @transient val logger: Logger
+  @transient lazy val logger: Logger = Logger.getLogger(this.getClass)
 
   def appendBuffer(id: String, line: String, buffer: mutable.Map[String, mutable.ListBuffer[String]]) = {
     val (writer, appender) = getStringAppender

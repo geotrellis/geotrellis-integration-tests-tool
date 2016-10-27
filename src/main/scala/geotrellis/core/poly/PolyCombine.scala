@@ -5,16 +5,14 @@ import geotrellis.spark._
 import geotrellis.spark.io.avro.AvroRecordCodec
 
 import org.apache.spark.rdd.RDD
-import org.slf4j.{Logger, LoggerFactory}
+import com.typesafe.scalalogging.LazyLogging
 import shapeless.{::, HNil, Poly2}
 import spray.json.JsonFormat
 
 import scala.reflect.ClassTag
 import scala.util.Random
 
-object PolyCombine extends Poly2 {
-  @transient lazy val logger: Logger = LoggerFactory.getLogger(this.getClass)
-
+object PolyCombine extends Poly2 with LazyLogging {
   type In[K, V, M] = LayerId :: RDD[(K, V)] with Metadata[M] :: HNil
 
   private def createTiles[K, V](tile: (K, V)): Seq[(K, V)] = Seq(tile)

@@ -7,26 +7,22 @@ import geotrellis.spark._
 import geotrellis.spark.io._
 import geotrellis.proj4._
 import geotrellis.vector.Extent
-import geotrellis.config.json.dataset.JConfig
 import geotrellis.util.{Colors, LoggingSummary}
+import geotrellis.config.Dataset
 
-import org.joda.time.DateTime
-import org.apache.log4j.Logger
+import java.time.ZonedDateTime
 
 import scala.math._
 
-
 object SinglebandSpaceTime extends ValidationUtilities with LoggingSummary {
-  @transient lazy val logger: Logger = Logger.getLogger(this.getClass)
-
   def sizeAndEquality(
     metadata: TileLayerMetadata[SpaceTimeKey],
-    jConfig: JConfig,
+    dataset: Dataset,
     layerId: LayerId,
-    dt: Option[DateTime],
+    dt: Option[ZonedDateTime],
     read: (LayerId, Option[Extent]) => TileLayerRDD[SpaceTimeKey]
   ) = {
-    val expected = SinglebandGeoTiff(jConfig.validationOptions.tiffLocal)
+    val expected = SinglebandGeoTiff(dataset.validation.tiffLocal)
     val expectedRaster = expected.raster.reproject(expected.crs, metadata.crs)
 
     val ingestedRaster =
@@ -42,7 +38,7 @@ object SinglebandSpaceTime extends ValidationUtilities with LoggingSummary {
         .map { case (v1, v2) => v1 - v2 }
     val diffRaster: Raster[Tile] = Raster(ArrayTile(diffArr, ingestedRaster.cols, ingestedRaster.rows), ingestedRaster.extent)
 
-    val infoAppender = appendLog(validationLogId(jConfig)) _
+    val infoAppender = appendLog(validationLogId(dataset)) _
     infoAppender(s"validation.size.eq: ${ingestedRaster.tile.size == expectedRasterResampled.tile.size}")
     infoAppender(s"validation: ${ingestedRaster.tile.toArray().sameElements(expectedRasterResampled.tile.toArray())}")
     (Option(ingestedRaster), Option(expectedRasterResampled), List(diffRaster))
@@ -50,9 +46,9 @@ object SinglebandSpaceTime extends ValidationUtilities with LoggingSummary {
 
   def resampleCorrectness(
       metadata: TileLayerMetadata[SpaceTimeKey],
-      jConfig: JConfig,
+      dataset: Dataset,
       layerId: LayerId,
-      dt: Option[DateTime],
+      dt: Option[ZonedDateTime],
       read: (LayerId, Option[Extent]) => TileLayerRDD[SpaceTimeKey]
   ) {
     // The basic steps:
@@ -61,16 +57,16 @@ object SinglebandSpaceTime extends ValidationUtilities with LoggingSummary {
     // 3  compare against ingested+resampled values
 
     // Control values
-    val controlTiff = SinglebandGeoTiff(jConfig.validationOptions.tiffLocal)
+    val controlTiff = SinglebandGeoTiff(dataset.validation.tiffLocal)
     val controlRaster = controlTiff.raster
-    val controlSampleExtent = randomExtentWithin(controlRaster.extent, jConfig.validationOptions.sampleScale)
+    val controlSampleExtent = randomExtentWithin(controlRaster.extent, dataset.validation.sampleScale)
 
     // Transformations
-    val transformation = Transform(controlTiff.crs, jConfig.ingestOptions.layoutScheme.crs)
-    val invTransformation = Transform(jConfig.ingestOptions.layoutScheme.crs, controlTiff.crs)
+    val transformation = Transform(controlTiff.crs, dataset.output.getCrs.get)
+    val invTransformation = Transform(dataset.output.getCrs.get, controlTiff.crs)
 
     // Test parameters
-    val diffThreshold = jConfig.validationOptions.resolutionThreshold
+    val diffThreshold = dataset.validation.resolutionThreshold
     val ingestSampleExtent = controlSampleExtent.reproject(transformation)
 
     // Test values
@@ -125,8 +121,8 @@ object SinglebandSpaceTime extends ValidationUtilities with LoggingSummary {
         }
       }
     }
-    val infoAppender = appendLog(validationLogId(jConfig)) _
-    val warnAppender = appendLog(validationLogId(jConfig), Colors.yellow(_)) _
+    val infoAppender = appendLog(validationLogId(dataset)) _
+    val warnAppender = appendLog(validationLogId(dataset), Colors.yellow(_)) _
     infoAppender(s"Resample correctness")
     if (outOfBoundsCount > 0) warnAppender(s"Index out of bounds errors encounted: $outOfBoundsCount exceptions")
     infoAppender(s"Control tile range: ${maxControl - minControl}; test tile range: ${maxTest - minTest}")
